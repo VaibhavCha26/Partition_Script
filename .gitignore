@@ -1,0 +1,6 @@
+# Ignore the compiled executable binary
+install_script
+
+# Ignore any standard C object files
+*.o
+
