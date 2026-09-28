@@ -13,9 +13,17 @@
 #include <sys/wait.h>
 #include <string.h>
 //
+// <parted.h> is the libparted and will do the partition itself but its unstable nad poorly documented;
+// if the fork fails - the child dies but if libparted fails - everything crashes or [corrupt a disk due to pointer error ] --> wtf? 
+// there's libext4fs too -- both library are very low level and requires manual config of everything 
+// wtf ?
 //
 //run_parted_command is good abstraction but there's np sureity that a correct path would be fed to it 
 // !!!!!!! SO MAKE SURE TO ADD CHECKING TO THE GIVEN ARGV TOO BEFORE CALLING run_parted_command.
+//
+char efi_part[64];
+char root_part[64];
+//
 //
 #include <linux/fs.h> // ===> it contains the blueprint specifications for how the linux os handles filesystems, block drives and raw storage devices.
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
@@ -86,8 +94,6 @@ partition_failed_goto:
     // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
     // as parted would skip that completely.
     //
-    char efi_part[64];
-    char root_part[64];
     //
     //
     //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
@@ -102,14 +108,14 @@ partition_failed_goto:
     // that partititon doesn't have any table, sturcture or concept of files and stuff 
     //
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
-don't commit if you don't know sdl3 - i am in no mood to add some random code optimizations into this shit
     // fat32 : ??? wtf is a hex marker?
     //
     int efi_status = run_parted_command(efi_partition);
     if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
     //
-    //snprintf(efi_part,sizeof(efi_part),
-    //         "/dev/%s",dir_partition_elements->d_name);
+    // HIGH BUG PROBABILITY !!!!
+    snprintf(efi_part,sizeof(efi_part),
+             "/dev/%s",dir_partition_elements->d_name);
     //
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
@@ -126,8 +132,10 @@ don't commit if you don't know sdl3 - i am in no mood to add some random code op
     int root_status = run_parted_command(root_partition);
     if(root_status != 0){perror("root partitioning failed wtf:");exit(1);}
     // creating path to the individual partitions - cause why not ?
-    //snprintf(root_part,sizeof(root_part),
-    //         "/dev/%s",dir_partition_elements->d_name);
+    //
+    // HIGH BUG PROBABILITY !!!!!!
+    snprintf(root_part,sizeof(root_part),
+             "/dev/%s",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
   }
   //
   //
