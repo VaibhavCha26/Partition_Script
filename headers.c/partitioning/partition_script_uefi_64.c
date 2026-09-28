@@ -86,6 +86,10 @@ partition_failed_goto:
     // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
     // as parted would skip that completely.
     //
+    char efi_part[64];
+    char root_part[64];
+    //
+    //
     //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
     //  that it completely removes the old structure and writes a clean disk sector at the very beginning of the drive - NOT SURE WHAT EXACTLY IT IS - READ THE BOOK; -- I FORGOT T-T
     char* argv[] = {"parted", "-s", abs_disk_path,"mklabel","gpt",NULL};
@@ -98,24 +102,46 @@ partition_failed_goto:
     // that partititon doesn't have any table, sturcture or concept of files and stuff 
     //
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
+don't commit if you don't know sdl3 - i am in no mood to add some random code optimizations into this shit
     // fat32 : ??? wtf is a hex marker?
+    //
+    int efi_status = run_parted_command(efi_partition);
+    if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
+    //
+    //snprintf(efi_part,sizeof(efi_part),
+    //         "/dev/%s",dir_partition_elements->d_name);
+    //
+    // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
+    // 1. partprobe -- reread the partition table (kernel)
+    // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
+    //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
+    //
+    if(){
+    }
     //
     //now root partiton ;
     char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
       "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
+    //
+    int root_status = run_parted_command(root_partition);
+    if(root_status != 0){perror("root partitioning failed wtf:");exit(1);}
+    // creating path to the individual partitions - cause why not ?
+    //snprintf(root_part,sizeof(root_part),
+    //         "/dev/%s",dir_partition_elements->d_name);
   }
-
+  //
+  //
   // and here if the string is passed the checking of the string - is it correct or not should take place.
-  //
-  //
-  if(strcmp(argv[0],"parted") != 0){
+  if(argv != NULL && strcmp(argv[0],"parted") != 0){
     perror("wrong syscall called : Expected: \"parted\" ");
     exit(1);
   }
-  int partition_status = run_parted_command(argv);
-  if(partition_status != 0){
-    perror("partition failed: ");
-    goto partition_failed_goto;
-  }
+  
+
   return 0;
 }
+
+// ioctl approach 
+int partition_status_check(){
+}
+// udevaadm settle approach

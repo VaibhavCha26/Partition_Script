@@ -7,3 +7,4 @@
 //partition function header files calls.
 #include "./partitioning/partition_script_uefi_64.h"
 #include "./partitioning/run_partition_call.h"
+#include "./partitioning/format_partitioned_space.h"
