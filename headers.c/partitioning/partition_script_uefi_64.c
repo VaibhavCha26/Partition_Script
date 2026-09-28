@@ -1,4 +1,5 @@
 #include "../../headers.h/partitioning/run_partition_call.h"
+#include "../../headers.h/uefi_check.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +11,12 @@
 // i don't know what errno is but ioctl handles it itself somehow 0_0 
 #include <unistd.h>
 #include <sys/wait.h>
-
+#include <string.h>
+//
+//
+//run_parted_command is good abstraction but there's np sureity that a correct path would be fed to it 
+// !!!!!!! SO MAKE SURE TO ADD CHECKING TO THE GIVEN ARGV TOO BEFORE CALLING run_parted_command.
+//
 #include <linux/fs.h> // ===> it contains the blueprint specifications for how the linux os handles filesystems, block drives and raw storage devices.
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
 int partition_uefi64(char* argv[]){
@@ -18,9 +24,11 @@ int partition_uefi64(char* argv[]){
   struct dirent* dir_partition_elements = 
     readdir(dir_partition);
   //
+  //
+  // another problem how to make sure that its the right file and not some random shit ? 
+  if(strcmp(dir_partition_elements->d_name, "vda") != 0){perror("VDA not found Fuck");exit(1);}
   int partition_file_fd = open(dir_partition_elements->d_name,
                                O_RDWR,O_EXCL,O_NONBLOCK); // why the O_NONBLOCK ?? wtf ? T-T 
-  //
   //
   //
   if(partition_file_fd < 0 ){printf("/dev contains no file wtf?");exit(1);}
@@ -64,6 +72,17 @@ int partition_uefi64(char* argv[]){
   //
   // so what partitions do i want now ?
   //
-  run_parted_command(argv);
+  //
+  //here it would be a problem if its something else except /dev/vda - recalling this would make this entire thing to go again and take on a already formatted disk.
+  if(argv == NULL && uefi_check{printf("NULL args : using defualt");
+    char* argv[] = {"parted", "-s", dir_partition_elements->d_name,"mklabel","gpt",NULL};
+  }
+
+  // and here if the string is passed the checking of the string - is it correct or not should take place.
+  //
+  if(strcmp(argv[0],"parted") != 0){
+    perror("wrong syscall called : Expected: \"parted\" ");
+    exit(1);
+  }
   return 0;
 }

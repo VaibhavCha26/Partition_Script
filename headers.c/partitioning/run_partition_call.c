@@ -11,7 +11,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-
+//. The issue is not this function itself — it’s that the surrounding repo never properly defines the command arguments or validates the target device.
+//
 // abstraction : nice :)
 // great now i can pass the args for the partition i need and i can make partitions with this.
 int run_parted_command(char* argv[]){

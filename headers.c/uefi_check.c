@@ -14,7 +14,7 @@
 
 
 
-#define FW_SIZE "/sys/firware/efi"
+#define FW_SIZE "/sys/firmware/efi"
 int uefi_checking(void){
   // the installer deals with raw files like /dev/vda -- everything like wiping the partition table needs to be asked to the kernel to do it - without caching them into ram  
   // when fopen and fwrite is called they create a memory and buffer of size 4-8kb into the ram. -- so calling fread won't read the part i asked for but would read the entire thing till buffer is full
@@ -48,18 +48,22 @@ int uefi_checking(void){
   // sending the compiled code is bad ? why >_> ?
   //
   bool uefi_check = 0;
+  int number = 0;
+  //
+  //
+  // READDIR MIGHT READ . and .. too !!
   //
   //
   DIR *dir = opendir(FW_SIZE); // DIR and dirent are specific data types that system use for dir and things inside that dir.
-  
+  if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
   struct dirent *entry_of_dir = readdir(dir); // conveyor belt )-);
-  
+  if(dir==NULL){perror("nothing inside /sys/firmware/efi:");exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
   // and get a struct to individual files inside it for data defined by pointers :| 
   //
   // opendir and struct of opendir is just to check the existence of these files and nothing else -- we already know where the fw_platform_size is ?
   //
-  if(strcmp(entry_of_dir->d_name,"fw_platform_size")){
+  if(!strcmp(entry_of_dir->d_name,"fw_platform_size")){
     int file_fd = open("/sys/firmware/efi/fw_platform_size",
                        O_RDONLY); // flags makes the file read only;
     //
@@ -85,17 +89,8 @@ int uefi_checking(void){
     
     close(file_fd);
   }
-  if(dir == NULL){
-    printf("efi not found");
-    return 0;
-  }
-  if(entry_of_dir == NULL){
-    printf("getting entry node failed");
-    return 0;
-  }
-
-  return number;
   closedir(dir);
-
-  
+  return number;return uefi_check;
 }
+
+
