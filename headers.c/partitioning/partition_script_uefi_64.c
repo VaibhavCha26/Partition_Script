@@ -19,7 +19,7 @@
 //
 #include <linux/fs.h> // ===> it contains the blueprint specifications for how the linux os handles filesystems, block drives and raw storage devices.
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
-int partition_uefi64(char* argv[]){
+int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   DIR* dir_partition = opendir("/dev");
   struct dirent* dir_partition_elements = 
     readdir(dir_partition);
@@ -48,6 +48,8 @@ int partition_uefi64(char* argv[]){
   //unsigned long size; // ---> feeling that this will be a issue.
   uint64_t size;
   // free size as well ? 
+  //
+partition_failed_goto:
   int size_of_disk = ioctl(partition_file_fd,
                              BLKGETSIZE64,
                              &size); // long may only contain 32 bit so..... idk :P
@@ -73,16 +75,47 @@ int partition_uefi64(char* argv[]){
   // so what partitions do i want now ?
   //
   //
+  //
   //here it would be a problem if its something else except /dev/vda - recalling this would make this entire thing to go again and take on a already formatted disk.
-  if(argv == NULL && uefi_check{printf("NULL args : using defualt");
-    char* argv[] = {"parted", "-s", dir_partition_elements->d_name,"mklabel","gpt",NULL};
+  if(argv == NULL && uefi_check){
+    printf("NULL args : using default:");
+
+    char abs_disk_path[64];
+    snprintf(abs_disk_path,sizeof(abs_disk_path),
+             "/dev/%s",dir_partition_elements->d_name);
+    // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
+    // as parted would skip that completely.
+    //
+    //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
+    //  that it completely removes the old structure and writes a clean disk sector at the very beginning of the drive - NOT SURE WHAT EXACTLY IT IS - READ THE BOOK; -- I FORGOT T-T
+    char* argv[] = {"parted", "-s", abs_disk_path,"mklabel","gpt",NULL};
+    //
+    //
+    //not that the disk is in the gpt format - we can change the actual partition format of it;
+    char* efi_partition[] = {"parted","-s",abs_disk_path,"mkpart",
+    "primary","fat32","1MiB","513MiB",NULL};
+    // mkpart hasn't made or changed the file systems - it simply divided the chunk of /dev/whatever and told the kernel sector a to b is locked :)
+    // that partititon doesn't have any table, sturcture or concept of files and stuff 
+    //
+    // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
+    // fat32 : ??? wtf is a hex marker?
+    //
+    //now root partiton ;
+    char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
+      "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
   }
 
   // and here if the string is passed the checking of the string - is it correct or not should take place.
   //
+  //
   if(strcmp(argv[0],"parted") != 0){
     perror("wrong syscall called : Expected: \"parted\" ");
     exit(1);
+  }
+  int partition_status = run_parted_command(argv);
+  if(partition_status != 0){
+    perror("partition failed: ");
+    goto partition_failed_goto;
   }
   return 0;
 }

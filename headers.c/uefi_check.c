@@ -12,7 +12,7 @@
 //installer is like a security guard - each instruction is given to the kernel only when the kernel gives the confirmation for the previous code.
 // in case of streaming i/o and pipelines - the user-space buffering becomes less of an issue -- wtf? :(
 
-
+bool uefi_check = 0;
 
 #define FW_SIZE "/sys/firmware/efi"
 int uefi_checking(void){
@@ -47,7 +47,7 @@ int uefi_checking(void){
   // or hhtp 8000 smth -- also can change it so that either code goes and it complies there or send the compiled code and run it there,
   // sending the compiled code is bad ? why >_> ?
   //
-  bool uefi_check = 0;
+  // making it a pointer so when i derefrence it inside another file it should work?
   int number = 0;
   //
   //
@@ -56,6 +56,8 @@ int uefi_checking(void){
   //
   DIR *dir = opendir(FW_SIZE); // DIR and dirent are specific data types that system use for dir and things inside that dir.
   if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
+  //
+next_element_dir:
   struct dirent *entry_of_dir = readdir(dir); // conveyor belt )-);
   if(dir==NULL){perror("nothing inside /sys/firmware/efi:");exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
@@ -63,6 +65,7 @@ int uefi_checking(void){
   //
   // opendir and struct of opendir is just to check the existence of these files and nothing else -- we already know where the fw_platform_size is ?
   //
+  // its going to crash i am having a deep feeling T-T
   if(!strcmp(entry_of_dir->d_name,"fw_platform_size")){
     int file_fd = open("/sys/firmware/efi/fw_platform_size",
                        O_RDONLY); // flags makes the file read only;
@@ -82,15 +85,19 @@ int uefi_checking(void){
     // CRITICAL HERE: aoti and printf will fail i don't add the null pointer;
     size_buffer[uefi_type] = '\0'; // wtf why didn't "work" ?
     //
-    int number = atoi(size_buffer);
+    number = atoi(size_buffer);
     if(number == 64){uefi_check = true;}
     else if (number == 32){uefi_check = true;}
     //
     
     close(file_fd);
   }
+  // okay time for cs crime
+  else{
+    goto next_element_dir;
+  }
   closedir(dir);
-  return number;return uefi_check;
+  return number;
 }
 
 
