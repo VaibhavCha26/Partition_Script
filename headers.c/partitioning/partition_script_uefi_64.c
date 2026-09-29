@@ -25,6 +25,7 @@ char efi_part[64];
 char root_part[64];
 //
 //
+//
 #include <linux/fs.h> // ===> it contains the blueprint specifications for how the linux os handles filesystems, block drives and raw storage devices.
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
 int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
@@ -57,6 +58,9 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   uint64_t size;
   // free size as well ? 
   //
+  //
+  //
+  //
 partition_failed_goto:
   int size_of_disk = ioctl(partition_file_fd,
                              BLKGETSIZE64,
@@ -64,7 +68,9 @@ partition_failed_goto:
   // Integer Truncation Overflow - wtf -- if i pass that 64 bit into 32 i will triger memory corruption ( writing things not assigned to it ) 
   // and the kernel driver doesn't look at my C variable declaration - it will forcefully fuck the assignement over ? why T-T 
   if(size_of_disk < 0){perror("ioctl failed getting size");printf("\n");exit(1);}
-
+  // !! WAIT WHAT ABOUT RERTURN NUMBER FROM UEFI_CHECK;
+  //
+  //
   // Actual Partition_time MBR / GPT wtf T-T 
   // GPT one for uefi but what the fuck do i do for mbr?
   // a UEFI motherboard technically can read MBR because of backward compatibility using CSM -- wait so it doesn't matter which one of these i have ? ;p 
@@ -152,4 +158,6 @@ partition_failed_goto:
 // ioctl approach 
 int partition_status_check(){
 }
-// udevaadm settle approach
+//
+// udevaadm settle approach - wtf is that T-T;
+
