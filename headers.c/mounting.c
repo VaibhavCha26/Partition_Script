@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "../headers.h/uefi_check.h"
 #include "../headers.h/mounting.h"
 #include "../headers.h/partitioning/format_partitioned_space.h"
-#include <sys/stat.h>
+#include <sys/stat.h>  // for mkdir 
 #include <sys/mount.h>
+#include <stdio.h>
 
 // in operating system - like windows = every partition gets its own isolated letter name..
 // 
@@ -111,12 +113,61 @@ int mounting_status(char efi_part[64], char root_part[64])
     //  SO THATS WHY SYNC() and FSYNC() is used its basically telling the kernel to remove the vfs inode cache
     //  you have so flush those old inode nodes out and wait for new one.
   
+    // scary stuff i have btfrs rights? 
+    // this is the installer value - for os installer pass 0 -- but why ? T-T;
+    // -o flag for standard ext4 and vfat operations - pass NULL but for 
+    //      btrfs pass a string but wait what is mine - i have btrfs right? 
     
-    int mount(pathig?,"/mnt","vfat" // scary stuff i have btfrs rights? 
-              0, // this is the installer value - for os installer pass 0 -- but why ? T-T;
-              NULL, // -o flag for standard ext4 and vfat operations - pass NULL but for btrfs pass a string but wait what is mine - i have btrfs right? 
-              //
-              );
+    // the /dev/vda or stuff is inherently the root directory and should contain the boot partition as well
+    // there's nothing like divinding drive to boot parititona dn then root partitiiona dn stuff. !!!!
+    //
+    // Plan -- Mount the /mnt to the  "Root" and then make a folder boot inside it and mount the /mnt/boot there -
+    // for allowing the bootloader to go there - damn 
+    //
+    // How is it possible for ROOT TO HAVE BOOT INSIDE IT - EXT4 VS FAT#@ WTF ?
+    //  -- The kernel has an advanced abs layer called the VFS - so basically its a manager 
+    //  between application and the individual filesystem drivers (fat32 and ext4 drivers T-T)
+    //  so my programs folders doesn't matter its just a path and when the kernel access that - "It mounts points as redirection flags"
+    //
+    // PAIN : i mount the root (ext4) and then creates a file inside it - what happens is that the vfs sees the path 
+    // and then gives it to the ext4 driver - which then puts it into the ext4 partition
+    // when i mount the boot folder inside this ext4 root - the vfs makes a "REDIRECTOR HOOK"
+    //
+//
+    //                   [ THE VFS ROUTING MATRIX ]
+//                          /mnt/ (EXT4 Base)
+//                            │
+//            ┌───────────────┴───────────────┐
+//            ▼ (Normal Path)                 ▼ (The Redirector Hook)
+//     /mnt/etc/hostname               /mnt/boot/EFI/
+//            │                               │
+//    [ EXT4 Driver ]                  [ FAT32 Driver ]
+//          │                               │
+//  Burns to Root Partition          Burns to Boot Partition
+
+    //
+    // for now /dev/vda is fine - later will add checking for it.
+    // again same making the kernel wait problem
+    if(mount(entry_of_dir->d_name,
+             "/mnt",
+             "ext4",0,NULL) < 0){
+      // T-T - 
+      perror("Mounting of root_part failed:");
+      exit(1);
+    }
+    if(mkdir("/mnt/boot",0755)){
+      perror("Making directory failed wtf T-T:");
+      exit(1);
+    }
+
+    if(mount(entry_of_dir->d_name,
+             "/mnt/boot",
+             "vfat",
+             0,
+             NULL) < 0){
+      perror("Mounting for boot fomat partition failed:");
+      exit(1);
+    }
   }
   return 0;
 }
