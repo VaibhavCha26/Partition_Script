@@ -9,3 +9,5 @@
 #include "./partitioning/run_partition_call.h"
 #include "./partitioning/format_partitioned_space.h"
 #include "./mounting.h"
+#include "./dir_making_options/pacstrap_call.h"
+#include "./dir_making_options/pacstrap_option.h"
