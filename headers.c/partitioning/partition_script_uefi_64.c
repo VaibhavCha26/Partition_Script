@@ -30,12 +30,22 @@ char root_part[64];
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
 int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   DIR* dir_partition = opendir("/dev");
-  struct dirent* dir_partition_elements = 
-    readdir(dir_partition);
+  if(!dir_partition){perror("opening /dev failed:"); exit(1);}
+  
+goto_cause_i_am_lazy:
+  struct dirent* dir_partition_elements = readdir(dir_partition);
+
   //
   //
   // another problem how to make sure that its the right file and not some random shit ? 
-  if(strcmp(dir_partition_elements->d_name, "vda") != 0){perror("VDA not found Fuck");exit(1);}
+  //
+  // -->> this condition was making sure i can't iterate on the /dev so removed it.
+  if((strcmp(dir_partition_elements->d_name, "vda")) != 0 &&
+    (dir_partition_elements == NULL)){
+    //
+    goto goto_cause_i_am_lazy; // dangerous stuff because i am very lazy :P 
+    // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
+  }
   int partition_file_fd = open(dir_partition_elements->d_name,
                                O_RDWR,O_EXCL,O_NONBLOCK); // why the O_NONBLOCK ?? wtf ? T-T 
   //
@@ -96,7 +106,7 @@ partition_failed_goto:
 
     char abs_disk_path[64];
     snprintf(abs_disk_path,sizeof(abs_disk_path),
-             "/dev/%s",dir_partition_elements->d_name);
+             "/dev/%s1",dir_partition_elements->d_name);
     // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
     // as parted would skip that completely.
     //
@@ -116,20 +126,24 @@ partition_failed_goto:
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
     //
+    //
+    //
+    //
+    //
     int efi_status = run_parted_command(efi_partition);
     if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
     //
     // HIGH BUG PROBABILITY !!!!
     snprintf(efi_part,sizeof(efi_part),
-             "/dev/%s",dir_partition_elements->d_name);
+             "/dev/%s2",dir_partition_elements->d_name);
     //
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
     //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
     //
-    if(){
-    }
+    //if(){
+   //  }   --- something to make the kernel stop from runnning the program to;; the previous command is completed.
     //
     //now root partiton ;
     char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
@@ -138,6 +152,9 @@ partition_failed_goto:
     int root_status = run_parted_command(root_partition);
     if(root_status != 0){perror("root partitioning failed wtf:");exit(1);}
     // creating path to the individual partitions - cause why not ?
+    //
+    //
+    //
     //
     // HIGH BUG PROBABILITY !!!!!!
     snprintf(root_part,sizeof(root_part),
@@ -156,7 +173,7 @@ partition_failed_goto:
 }
 
 // ioctl approach 
-int partition_status_check(){
+void partition_status_check(){
 }
 //
 // udevaadm settle approach - wtf is that T-T;

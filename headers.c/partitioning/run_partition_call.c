@@ -1,8 +1,8 @@
 #include "../../headers.h/partitioning/run_partition_call.h"
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -29,7 +29,7 @@ int run_parted_command(char* argv[]){
     //
     // execv'p -- here p means path - no need for absoulute path.
     int execvp_status = execvp(argv[0], argv);
-    if(execvp_status < 0){perror("execvp failed:");exit(1);}
+    if(execvp_status < 0){perror("execvp failed:");return 1;}
     //
     // parted is the file i want to run ! 
     // This is an array of pointers to null-terminated strings that represent the argument list available to the new program
@@ -44,8 +44,16 @@ int run_parted_command(char* argv[]){
     //return 0; -- hmm O_O.
   }
   // do i need the childs process status?
+  // Yes T-T 
+  bool child_process_status;
+  // wifexited - for checking if it finished normally -- 0 / 1 
+  // wexitstatus - for checking what integer it returns exactly.
   //
-  // NULL ? >_> are you sure? :P
-  waitpid(id_parted_fork_call,NULL,0);
+  // what for wait ?? waitpid or wait aor what ?
+  if(WIFEXITED(child_process_status)){
+    // NULL ? >_> are you sure? :P
+    // why not wait() ?
+    waitpid(id_parted_fork_call,NULL,0);
+  }
   return 0;
 }

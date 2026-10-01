@@ -13,12 +13,10 @@ int pacstrap_call(char* argv_pacstrap[]){
     if(execvp_status_pacstrap < 0){
       perror("pacstrap_call failed: T-T");
       exit(1);
-    }
-
-    else {
-      waitpid(id_pacstrap_fork,
-              NULL,0);
-    }
+    }  
   }
+  waitpid(id_pacstrap_fork,
+      NULL,0);
+  
   return 0;
 }
