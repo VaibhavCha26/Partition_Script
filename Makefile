@@ -1,4 +1,3 @@
-cat << 'EOF' > Makefile
 CC = gcc
 CFLAGS = -I. -Wall -Wextra
 TARGET = install_script
@@ -24,5 +23,4 @@ clean:
 	rm -f $(OBJECTS) $(TARGET)
 
 .PHONY: all clean
-EOF
 
