@@ -40,9 +40,11 @@ goto_cause_i_am_lazy:
   // another problem how to make sure that its the right file and not some random shit ? 
   //
   // -->> this condition was making sure i can't iterate on the /dev so removed it.
-  if((strcmp(dir_partition_elements->d_name, "vda")) != 0 &&
-    (dir_partition_elements == NULL)){
+  if(strcmp(dir_partition_elements->d_name, ".")
+    || strcmp(dir_partition_elements->d_name,"..") || 
+    (dir_partition_elements == NULL) ) {
     //
+    if(dir_partition_elements == NULL){printf("Nothing in /dev wtf ?");exit(1);}
     goto goto_cause_i_am_lazy; // dangerous stuff because i am very lazy :P 
     // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
   }
