@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/ioctl.h>
@@ -45,7 +46,9 @@ int run_parted_command(char* argv[]){
   }
   // do i need the childs process status?
   // Yes T-T 
-  bool child_process_status;
+  int child_process_status;
+  waitpid(id_parted_fork_call,&child_process_status,0);
+
   // wifexited - for checking if it finished normally -- 0 / 1 
   // wexitstatus - for checking what integer it returns exactly.
   //
@@ -53,7 +56,8 @@ int run_parted_command(char* argv[]){
   if(WIFEXITED(child_process_status)){
     // NULL ? >_> are you sure? :P
     // why not wait() ?
-    waitpid(id_parted_fork_call,NULL,0);
+    int exit_code = WEXITSTATUS(child_process_status);
+    return exit_code;
   }
-  return 0;
+  return -1; // child didn't exit normally;
 }

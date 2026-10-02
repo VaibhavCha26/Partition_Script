@@ -167,7 +167,6 @@ partition_failed_goto:
     perror("wrong syscall called : Expected: \"parted\" ");
     exit(1);
   }
-  
 
   return 0;
 }

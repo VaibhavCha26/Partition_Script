@@ -15,8 +15,13 @@ int pacstrap_call(char* argv_pacstrap[]){
       exit(1);
     }  
   }
+  int pacstrap_fork_status;
+  //
   waitpid(id_pacstrap_fork,
-      NULL,0);
-  
-  return 0;
+      &pacstrap_fork_status,0);
+  if(WIFEXITED(pacstrap_fork_status)){
+    int exit_code_pacstrap = WEXITSTATUS(pacstrap_fork_status);
+    return exit_code_pacstrap;
+  }
+  return -1; 
 }
