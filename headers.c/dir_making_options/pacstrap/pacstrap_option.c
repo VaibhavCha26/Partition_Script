@@ -1,5 +1,8 @@
 // This one is the easy orcha. way - supposedly T-T;
-
+// it will only and the other one will only work if i have internet so....
+// i setup internet myself ? 
+// or should i just do the "local package cache mount" - basically download all the base package binaries and dump those or through
+// compression image like squashfs archive.
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -14,8 +17,8 @@ int pacstrap_option(char* dir_choices[]){ // same thing - checking for dir_choic
     if(dir_choices == NULL)
     {
       char *default_dir_choices[] = {"pacstrap","-K","/mnt",
-        "base","Linux",
-        "Linux-firware",NULL};
+        "base","linux",
+        "linux-firware","nvim","networkmanager",NULL};
       pacstrap_call(default_dir_choices);
     }
 
