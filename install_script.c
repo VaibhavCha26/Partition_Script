@@ -9,7 +9,10 @@ int install_script(){
     printf("uefi_check True \n");
     //
     // scanf -- X  i will use write and read but should i and how ? 
+    // taking teh default inputs for partiton script call and mount call is not yet implemented.
     //
+    // use struct for that 
+    
     // mounting_status --> format..---> partition ---> run_parted_call ---> ???
     int partition_uefi64_status = partition_uefi64(NULL,
                                                    NULL); // for now.
