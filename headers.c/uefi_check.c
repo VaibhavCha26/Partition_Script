@@ -11,7 +11,7 @@
 //It is a state machine that relies heavily on a Request-Response-Verify loop.
 //installer is like a security guard - each instruction is given to the kernel only when the kernel gives the confirmation for the previous code.
 // in case of streaming i/o and pipelines - the user-space buffering becomes less of an issue -- wtf? :(
-int number;
+int number = 0;
 bool uefi_check = 0;
 struct dirent* entry_of_dir;
 // bad way ! if uefi_checking is not called it will contain garbage...
@@ -82,6 +82,8 @@ next_element_dir:
          sizeof(size_buffer)-1); 
     // the last parameter is simply the max amout of [] we can write ig?
     // be safe the null pointer isn't there in the size_buffer i don't know why.
+    //
+    if(uefi_type <= 0){printf("read() failed: ");exit(1);}
     //
     // CRITICAL HERE: aoti and printf will fail i don't add the null pointer;
     size_buffer[uefi_type] = '\0'; // wtf why didn't "work" ?
