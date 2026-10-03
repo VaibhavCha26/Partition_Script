@@ -3,6 +3,7 @@
 #include "../headers.h/uefi_check.h"
 #include "../headers.h/mounting.h"
 #include "../headers.h/partitioning/format_partitioned_space.h"
+#include "../headers.h/partitioning/partition_script_uefi_64.h"
 #include <sys/stat.h>  // for mkdir 
 #include <sys/mount.h>
 #include <stdio.h>
@@ -28,9 +29,12 @@
 // so that when i call /boot --> fat32 and /sys --> ext4;
 // so basically tunnel inside of a tunnel;
 //
-int mounting_status(char efi_part[64], char root_part[64])
+int mounting_status(char efi_user_part[64], char root_user_part[64])
 {
   int partitioning_status = format_partitioned_space();
+  if(efi_user_part == NULL){efi_user_part = efi_part;}
+  if(root_user_part == NULL){root_user_part = root_part;}
+
   if(partitioning_status)
   {
   // can use mknod() and mkdir() --> to create those dirs inside /mnt but pain;
@@ -148,7 +152,7 @@ int mounting_status(char efi_part[64], char root_part[64])
     //
     // for now /dev/vda is fine - later will add checking for it.
     // again same making the kernel wait problem
-    if(mount(root_part,
+    if(mount(root_user_part,
              "/mnt",
              "ext4",0,NULL) < 0){
       // T-T - 
@@ -160,7 +164,7 @@ int mounting_status(char efi_part[64], char root_part[64])
       exit(1);
     }
 
-    if(mount(efi_part,
+    if(mount(efi_user_part,
              "/mnt/boot",
              "vfat",
              0,

@@ -154,20 +154,22 @@ goto_cause_i_am_lazy:
     //if(){
    //  }   --- something to make the kernel stop from runnning the program to;; the previous command is completed.
     //
+    //
+    // HIGH BUG PROBABILITY !!!!!!
+    // why tf do i need root_part when i have mklabel_disk_path ????????????
+    snprintf(root_part,sizeof(root_part),
+             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
+    //
+    //
     //now root partiton ;
-    char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
+    char* root_partition[] = {"parted","-s",mklabel_disk_path,"mkpart",
       "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
+    //
     //
     int root_status = run_parted_command(root_partition);
     if(root_status != 0){perror("root partitioning failed wtf:");exit(1);}
     // creating path to the individual partitions - cause why not ?
     //
-    //
-    //
-    //
-    // HIGH BUG PROBABILITY !!!!!!
-    snprintf(root_part,sizeof(root_part),
-             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
   }
   //
   //
