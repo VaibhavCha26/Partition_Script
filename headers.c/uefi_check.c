@@ -50,7 +50,6 @@ int uefi_checking(void){
   // sending the compiled code is bad ? why >_> ?
   //
   // making it a pointer so when i derefrence it inside another file it should work?
-  int number = 0;
   //
   //
   // READDIR MIGHT READ . and .. too !!
@@ -99,7 +98,7 @@ next_element_dir:
     goto next_element_dir;
   }
   closedir(dir);
-  return 0;
+  return number;
 }
 
 
