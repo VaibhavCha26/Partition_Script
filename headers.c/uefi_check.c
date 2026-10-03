@@ -11,9 +11,11 @@
 //It is a state machine that relies heavily on a Request-Response-Verify loop.
 //installer is like a security guard - each instruction is given to the kernel only when the kernel gives the confirmation for the previous code.
 // in case of streaming i/o and pipelines - the user-space buffering becomes less of an issue -- wtf? :(
-
+int number;
 bool uefi_check = 0;
-
+struct dirent* entry_of_dir;
+// bad way ! if uefi_checking is not called it will contain garbage...
+//
 #define FW_SIZE "/sys/firmware/efi"
 int uefi_checking(void){
   // the installer deals with raw files like /dev/vda -- everything like wiping the partition table needs to be asked to the kernel to do it - without caching them into ram  
@@ -97,7 +99,7 @@ next_element_dir:
     goto next_element_dir;
   }
   closedir(dir);
-  return number;
+  return 0;
 }
 
 
