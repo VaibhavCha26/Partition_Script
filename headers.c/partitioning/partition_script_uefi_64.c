@@ -142,7 +142,7 @@ partition_failed_goto:
     //
     // HIGH BUG PROBABILITY !!!!
     snprintf(efi_part,sizeof(efi_part),
-             "/dev/%s2",dir_partition_elements->d_name);
+             "/dev/%s1",dir_partition_elements->d_name);
     //
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
