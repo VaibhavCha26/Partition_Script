@@ -59,7 +59,7 @@ int uefi_checking(void){
   if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
   //
 next_element_dir:
-  struct dirent *entry_of_dir = readdir(dir); // conveyor belt )-);
+  entry_of_dir = readdir(dir); // conveyor belt )-);
   if(entry_of_dir==NULL){perror("nothing inside /sys/firmware/efi:");exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
   // and get a struct to individual files inside it for data defined by pointers :| 
