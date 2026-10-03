@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include "headers.h/header_call.h"
 #include "headers.h/partitioning/partition_script_uefi_64.h"
+#include "headers.h/uefi_check.h"
 // so during compilation i still have to type that long this out so make a makefile i guess? T-T 
 int main(){
+  uefi_checking();
   if(uefi_check){
     printf("uefi_check True \n");
     //
