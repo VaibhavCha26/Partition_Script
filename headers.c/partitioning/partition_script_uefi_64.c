@@ -40,8 +40,8 @@ goto_cause_i_am_lazy:
   // another problem how to make sure that its the right file and not some random shit ? 
   //
   // -->> this condition was making sure i can't iterate on the /dev so removed it.
-  if(strcmp(dir_partition_elements->d_name, ".")
-    || strcmp(dir_partition_elements->d_name,"..") || 
+  if((strcmp(dir_partition_elements->d_name, ".") == 0)
+    || (strcmp(dir_partition_elements->d_name,"..") == 0) || 
     (dir_partition_elements == NULL) ) {
     //
     if(dir_partition_elements == NULL){printf("Nothing in /dev wtf ?");exit(1);}
@@ -116,7 +116,12 @@ partition_failed_goto:
     //
     //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
     //  that it completely removes the old structure and writes a clean disk sector at the very beginning of the drive - NOT SURE WHAT EXACTLY IT IS - READ THE BOOK; -- I FORGOT T-T
-    char* argv[] = {"parted", "-s", abs_disk_path,"mklabel","gpt",NULL};
+    char* argv[] = {"parted", "-s",
+      dir_partition_elements->d_name,   // mklabel should not take abs_disk_path
+      "mklabel",
+      "gpt",
+      NULL
+    };
     //
     //
     //not that the disk is in the gpt format - we can change the actual partition format of it;
@@ -160,7 +165,7 @@ partition_failed_goto:
     //
     // HIGH BUG PROBABILITY !!!!!!
     snprintf(root_part,sizeof(root_part),
-             "/dev/%s",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
+             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
   }
   //
   //
