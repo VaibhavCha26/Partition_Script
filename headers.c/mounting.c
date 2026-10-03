@@ -148,7 +148,7 @@ int mounting_status(char efi_part[64], char root_part[64])
     //
     // for now /dev/vda is fine - later will add checking for it.
     // again same making the kernel wait problem
-    if(mount(entry_of_dir->d_name,
+    if(mount(root_part,
              "/mnt",
              "ext4",0,NULL) < 0){
       // T-T - 
@@ -160,7 +160,7 @@ int mounting_status(char efi_part[64], char root_part[64])
       exit(1);
     }
 
-    if(mount(entry_of_dir->d_name,
+    if(mount(efi_part,
              "/mnt/boot",
              "vfat",
              0,
