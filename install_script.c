@@ -3,8 +3,7 @@
 #include "headers.h/header_call.h"
 #include "headers.h/partitioning/partition_script_uefi_64.h"
 // so during compilation i still have to type that long this out so make a makefile i guess? T-T 
-int install_script(){
-
+int main(){
   if(uefi_check){
     printf("uefi_check True \n");
     //
