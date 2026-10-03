@@ -21,8 +21,8 @@
 //run_parted_command is good abstraction but there's np sureity that a correct path would be fed to it 
 // !!!!!!! SO MAKE SURE TO ADD CHECKING TO THE GIVEN ARGV TOO BEFORE CALLING run_parted_command.
 //
-char efi_part[64];
-char root_part[64];
+char efi_part[64] = {0};
+char root_part[64] = {0};
 //
 //
 //
@@ -73,7 +73,6 @@ goto_cause_i_am_lazy:
   //
   //
   //
-partition_failed_goto:
   int size_of_disk = ioctl(partition_file_fd,
                              BLKGETSIZE64,
                              &size); // long may only contain 32 bit so..... idk :P
@@ -112,12 +111,15 @@ partition_failed_goto:
     // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
     // as parted would skip that completely.
     //
-    //
+    char mklabel_disk_path[64];
+    snprintf(mklabel_disk_path,sizeof(mklabel_disk_path),
+             "/dev/%s",
+             dir_partition_elements->d_name);
     //
     //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
     //  that it completely removes the old structure and writes a clean disk sector at the very beginning of the drive - NOT SURE WHAT EXACTLY IT IS - READ THE BOOK; -- I FORGOT T-T
     char* argv[] = {"parted", "-s",
-      dir_partition_elements->d_name,   // mklabel should not take abs_disk_path
+      mklabel_disk_path,   // mklabel should not take abs_disk_path but more like /dev/vda
       "mklabel",
       "gpt",
       NULL
