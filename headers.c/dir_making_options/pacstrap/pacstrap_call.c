@@ -23,5 +23,5 @@ int pacstrap_call(char* argv_pacstrap[]){
     int exit_code_pacstrap = WEXITSTATUS(pacstrap_fork_status);
     return exit_code_pacstrap;
   }
-  return -1; 
+  return -1;
 }
