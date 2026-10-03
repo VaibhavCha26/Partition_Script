@@ -30,7 +30,7 @@ int run_parted_command(char* argv[]){
     //
     // execv'p -- here p means path - no need for absoulute path.
     int execvp_status = execvp(argv[0], argv);
-    if(execvp_status < 0){perror("execvp failed:");return 1;}
+    if(execvp_status < 0){perror("execvp failed:");exit(1);}
     //
     // parted is the file i want to run ! 
     // This is an array of pointers to null-terminated strings that represent the argument list available to the new program
