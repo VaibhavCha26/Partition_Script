@@ -45,7 +45,8 @@ goto_cause_i_am_lazy:
   // technically the issue is that now whatever the first element there is in /dev after . and .. would be taken there is not checking
   // device detection doesn't validate the target device
   for(int temp_i = 3; temp_i >= 0; temp_i--){
-    device_check = device_check || strcmp(dir_partition_elements->d_name,common_disk_devices[temp_i]);
+    device_check = device_check ||
+      (strcmp(dir_partition_elements->d_name,common_disk_devices[temp_i]) == 0);
   }
   if((dir_partition_elements == NULL ) || device_check){
     //
@@ -139,7 +140,6 @@ goto_cause_i_am_lazy:
     //
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
-    //
     int efi_status = run_parted_command(efi_partition);
     if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
     //
@@ -152,9 +152,7 @@ goto_cause_i_am_lazy:
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
     //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
     //
-    //if(){
-   //  }   --- something to make the kernel stop from runnning the program to;; the previous command is completed.
-    //
+    if(){}
     //
     // HIGH BUG PROBABILITY !!!!!!
     // why tf do i need root_part when i have mklabel_disk_path ????????????
