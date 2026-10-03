@@ -37,6 +37,9 @@ goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
   //
   //
+  if(dir_partition_elements == NULL){printf("dir_partition_elements is null");
+    exit(1);
+  }
   // another problem how to make sure that its the right file and not some random shit ? 
   //
   // -->> this condition was making sure i can't iterate on the /dev so removed it.
@@ -48,13 +51,21 @@ goto_cause_i_am_lazy:
     device_check = device_check ||
       (strcmp(dir_partition_elements->d_name,common_disk_devices[temp_i]) == 0);
   }
-  if((dir_partition_elements == NULL ) || device_check){
+  if((dir_partition_elements == NULL ) || (device_check==0)){
     //
-    if(dir_partition_elements == NULL){printf("Nothing in /dev wtf ?");exit(1);}
-    goto goto_cause_i_am_lazy; // dangerous stuff because i am very lazy :P 
+    if(dir_partition_elements == NULL){
+      printf("Nothing in /dev wtf ?");
+      exit(1);
+    }
+    goto goto_cause_i_am_lazy;
+   // dangerous stuff because i am very lazy :P 
     // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
   }
-  int partition_file_fd = open(dir_partition_elements->d_name,
+  char partition_disk_path[64];
+  snprintf(partition_disk_path,sizeof(partition_disk_path),
+             "/dev/%s",dir_partition_elements->d_name);
+
+  int partition_file_fd = open(partition_disk_path,
                                O_RDWR,O_EXCL,O_NONBLOCK); // why the O_NONBLOCK ?? wtf ? T-T 
   //
   //
@@ -113,19 +124,14 @@ goto_cause_i_am_lazy:
 
     char abs_disk_path[64];
     snprintf(abs_disk_path,sizeof(abs_disk_path),
-             "/dev/%s1",dir_partition_elements->d_name);
+             "/dev/%s",dir_partition_elements->d_name);
     // wtf i don't know what i did with the snprintf but apparently the dir_partition_elements would pass that thign as a string and that won't work 
     // as parted would skip that completely.
-    //
-    char mklabel_disk_path[64];
-    snprintf(mklabel_disk_path,sizeof(mklabel_disk_path),
-             "/dev/%s",
-             dir_partition_elements->d_name);
     //
     //  this one is mklabel and not mkpart - there;s a difference between them mklabel : destroys all the structures and deploy the gpt -- 
     //  that it completely removes the old structure and writes a clean disk sector at the very beginning of the drive - NOT SURE WHAT EXACTLY IT IS - READ THE BOOK; -- I FORGOT T-T
     char* argv[] = {"parted", "-s",
-      mklabel_disk_path,   // mklabel should not take abs_disk_path but more like /dev/vda
+      abs_disk_path,   // mklabel should not take abs_disk_path but more like /dev/vda
       "mklabel",
       "gpt",
       NULL
