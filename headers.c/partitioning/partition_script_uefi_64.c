@@ -24,7 +24,8 @@
 char efi_part[64] = {0};
 char root_part[64] = {0};
 //
-//
+char* common_disk_devices[] = {"vda","vdb","sda","sdb"};
+// only for sata usb and virtual box drivers first.
 //
 #include <linux/fs.h> // ===> it contains the blueprint specifications for how the linux os handles filesystems, block drives and raw storage devices.
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
@@ -34,15 +35,19 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   
 goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
-
   //
   //
   // another problem how to make sure that its the right file and not some random shit ? 
   //
   // -->> this condition was making sure i can't iterate on the /dev so removed it.
-  if((strcmp(dir_partition_elements->d_name, ".") == 0)
-    || (strcmp(dir_partition_elements->d_name,"..") == 0) || 
-    (dir_partition_elements == NULL) ) {
+  //
+  int device_check = 0;
+  // technically the issue is that now whatever the first element there is in /dev after . and .. would be taken there is not checking
+  // device detection doesn't validate the target device
+  for(int temp_i = 3; temp_i >= 0; temp_i--){
+    device_check = device_check || strcmp(dir_partition_elements->d_name,common_disk_devices[temp_i]);
+  }
+  if((dir_partition_elements == NULL ) || device_check){
     //
     if(dir_partition_elements == NULL){printf("Nothing in /dev wtf ?");exit(1);}
     goto goto_cause_i_am_lazy; // dangerous stuff because i am very lazy :P 
@@ -135,10 +140,6 @@ goto_cause_i_am_lazy:
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
     //
-    //
-    //
-    //
-    //
     int efi_status = run_parted_command(efi_partition);
     if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
     //
@@ -162,7 +163,7 @@ goto_cause_i_am_lazy:
     //
     //
     //now root partiton ;
-    char* root_partition[] = {"parted","-s",mklabel_disk_path,"mkpart",
+    char* root_partition[] = {"parted","-s",root_part,"mkpart",
       "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
     //
     //
