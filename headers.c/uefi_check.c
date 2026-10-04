@@ -56,11 +56,11 @@ int uefi_checking(void){
   //
   //
   DIR *dir = opendir(FW_SIZE); // DIR and dirent are specific data types that system use for dir and things inside that dir.
-  if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
+  if(dir==NULL){perror("THE SYSTEM IS BIOS:");closedir(dir);exit(1);}
   //
 next_element_dir:
   entry_of_dir = readdir(dir); // conveyor belt )-);
-  if(entry_of_dir==NULL){perror("nothing inside /sys/firmware/efi:");exit(1);}
+  if(entry_of_dir==NULL){perror("nothing inside /sys/firmware/efi:");closedir(dir);exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
   // and get a struct to individual files inside it for data defined by pointers :| 
   //
@@ -74,7 +74,9 @@ next_element_dir:
     // open gives the file fd and i don't what the fuck is fd 
     if(file_fd<0){
       printf("The system is BIOS");
-      return 1;
+      closedir(dir);
+      close(file_fd);
+      exit(1);
     }
 
     char size_buffer[4]; // why char and not int ? wouldn't this 
@@ -83,7 +85,8 @@ next_element_dir:
     // the last parameter is simply the max amout of [] we can write ig?
     // be safe the null pointer isn't there in the size_buffer i don't know why.
     //
-    if(uefi_type <= 0){printf("read() failed: ");exit(1);}
+    if(uefi_type <= 0){printf("read() failed: ");closedir(dir);close(file_fd);
+      exit(1);}
     //
     // CRITICAL HERE: aoti and printf will fail i don't add the null pointer;
     size_buffer[uefi_type] = '\0'; // wtf why didn't "work" ?
