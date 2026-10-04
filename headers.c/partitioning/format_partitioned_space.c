@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int format_partitioned_space(){ // can add a part function string weird.
+int format_partitioned_space(){ // can add a part function string weird:
   char* efi_format[] = {"mkfs.vfat","-F","32",efi_part,NULL};
   char* root_format[] = {"mkfs.ext4","-F",root_part,NULL};
   //
@@ -15,5 +15,6 @@ int format_partitioned_space(){ // can add a part function string weird.
   // same issue how do i wait for kernel to complete the formatting now ?
   int format_root_status = run_parted_command(root_format);
   if(format_root_status != 0){perror("ROOT formatting to ext4 failed:");exit(1);}
+
   return 0;
 }
