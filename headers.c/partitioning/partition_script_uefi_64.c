@@ -31,14 +31,17 @@ char* common_disk_devices[] = {"vda","vdb","sda","sdb"};
 // it contains raw highly specific numbers inside this - enginners have mapped those numbers to text words ( macros ) can i manually handle instead of using this 0_0 :P 
 int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   DIR* dir_partition = opendir("/dev");
-  if(!dir_partition){perror("opening /dev failed:"); exit(1);}
+  if(!dir_partition){perror("opening /dev failed:"); closedir(dir_partition);
+    exit(1);}
   
 goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
   //
   //
   if(dir_partition_elements == NULL){printf("dir_partition_elements is null");
+    closedir(dir_partition);
     exit(1);
+    
   }
   // another problem how to make sure that its the right file and not some random shit ? 
   //
@@ -55,6 +58,7 @@ goto_cause_i_am_lazy:
     //
     if(dir_partition_elements == NULL){
       printf("Nothing in /dev wtf ?");
+      closedir(dir_partition);
       exit(1);
     }
     goto goto_cause_i_am_lazy;
@@ -66,10 +70,11 @@ goto_cause_i_am_lazy:
              "/dev/%s",dir_partition_elements->d_name);
 
   int partition_file_fd = open(partition_disk_path,
-                               O_RDWR,O_EXCL,O_NONBLOCK); // why the O_NONBLOCK ?? wtf ? T-T 
+                               O_RDWR | O_EXCL | O_NONBLOCK, 0 ); // why the O_NONBLOCK ?? wtf ? T-T 
   //
   //
-  if(partition_file_fd < 0 ){printf("/dev contains no file wtf?");exit(1);}
+  if(partition_file_fd < 0 ){printf("/dev contains no file wtf?");close(partition_file_fd);closedir(dir_partition);
+    exit(1);}
   // ioctl is input/output contorl - read and write are for basic files -- for hardware devices (hard drive, graphics card or webcam) - can't write text string
   // to a hard drive or any hardware and tell it to reset its hardware cache.
   //
@@ -79,14 +84,14 @@ goto_cause_i_am_lazy:
   // 1. DESYNCHRONIZATION
   // 2. DATA LOSS - if machine loses power
   // flushing the cache mean dropping everything to cpu NOW 
-  // ioctl is the "escape hatch system call" allows to send highly specific direct commands straight to hardware device driver.
+  // ioctl is the "escape hatch system call" allows to send highly specific direct commands straight to 
+  // hardware device driver.
   //
   int flush_cache = ioctl(partition_file_fd,BLKRRPART,0); // actual flushing i guess and
-  if(flush_cache < 0){perror("flush failed:");exit(1);}
+  if(flush_cache < 0){perror("flush failed:");close(partition_file_fd);closedir(dir_partition);;exit(1);}
   //unsigned long size; // ---> feeling that this will be a issue.
   uint64_t size;
   // free size as well ? 
-  //
   //
   //
   //
@@ -95,7 +100,9 @@ goto_cause_i_am_lazy:
                              &size); // long may only contain 32 bit so..... idk :P
   // Integer Truncation Overflow - wtf -- if i pass that 64 bit into 32 i will triger memory corruption ( writing things not assigned to it ) 
   // and the kernel driver doesn't look at my C variable declaration - it will forcefully fuck the assignement over ? why T-T 
-  if(size_of_disk < 0){perror("ioctl failed getting size");printf("\n");exit(1);}
+  if(size_of_disk < 0){perror("ioctl failed getting size");printf("\n");
+    closedir(dir_partition);
+    close(partition_file_fd);exit(1);}
   // !! WAIT WHAT ABOUT RERTURN NUMBER FROM UEFI_CHECK;
   //
   //
@@ -137,7 +144,9 @@ goto_cause_i_am_lazy:
       NULL
     };
     //
-    //
+    int mklabel_status = run_parted_command(argv);
+    if(mklabel_status != 0){perror("labelling failed:");close(partition_file_fd);closedir(dir_partition);}
+
     //not that the disk is in the gpt format - we can change the actual partition format of it;
     char* efi_partition[] = {"parted","-s",abs_disk_path,"mkpart",
     "primary","fat32","1MiB","513MiB",NULL};
@@ -147,7 +156,7 @@ goto_cause_i_am_lazy:
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
     int efi_status = run_parted_command(efi_partition);
-    if(efi_status != 0){perror("efi partition not created T-T:");exit(1);}
+    if(efi_status != 0){perror("efi partition not created T-T:");close(partition_file_fd);closedir(dir_partition);exit(1);}
     //
     // HIGH BUG PROBABILITY !!!!
     snprintf(efi_part,sizeof(efi_part),
@@ -158,7 +167,7 @@ goto_cause_i_am_lazy:
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
     //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
     //
-    if(){}
+    //if(){} --- implementation later.
     //
     // HIGH BUG PROBABILITY !!!!!!
     // why tf do i need root_part when i have mklabel_disk_path ????????????
@@ -172,15 +181,23 @@ goto_cause_i_am_lazy:
     //
     //
     int root_status = run_parted_command(root_partition);
-    if(root_status != 0){perror("root partitioning failed wtf:");exit(1);}
+    if(root_status != 0){perror("root partitioning failed wtf:");close(partition_file_fd);closedir(dir_partition);
+      exit(1);}
     // creating path to the individual partitions - cause why not ?
     //
   }
   //
   //
+  snprintf(root_part,sizeof(root_part),
+             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
+  //
+
+  //
   // and here if the string is passed the checking of the string - is it correct or not should take place.
   if(argv != NULL && strcmp(argv[0],"parted") != 0){
     perror("wrong syscall called : Expected: \"parted\" ");
+    close(partition_file_fd);
+    closedir(dir_partition);
     exit(1);
   }
 
