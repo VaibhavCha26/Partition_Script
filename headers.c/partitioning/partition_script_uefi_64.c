@@ -34,6 +34,7 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   if(!dir_partition){perror("opening /dev failed:"); closedir(dir_partition);
     exit(1);}
   
+int null_counter = 0;
 goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
   //
@@ -61,7 +62,10 @@ goto_cause_i_am_lazy:
       closedir(dir_partition);
       exit(1);
     }
-    goto goto_cause_i_am_lazy;
+    null_counter++;
+    if(null_counter < 1){
+      goto goto_cause_i_am_lazy;
+    }
    // dangerous stuff because i am very lazy :P 
     // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
   }
@@ -188,10 +192,7 @@ goto_cause_i_am_lazy:
   }
   //
   //
-  snprintf(root_part,sizeof(root_part),
-             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
   //
-
   //
   // and here if the string is passed the checking of the string - is it correct or not should take place.
   if(argv != NULL && strcmp(argv[0],"parted") != 0){
