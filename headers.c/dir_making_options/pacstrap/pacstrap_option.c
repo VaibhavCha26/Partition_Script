@@ -18,7 +18,7 @@ int pacstrap_option(char* dir_choices[]){ // same thing - checking for dir_choic
     {
       char *default_dir_choices[] = {"pacstrap","-K","/mnt",
         "base","linux",
-        "linux-firware","nvim","networkmanager",NULL};
+        "linux-firmware","nvim","networkmanager",NULL};
       pacstrap_call(default_dir_choices);
     }
 
