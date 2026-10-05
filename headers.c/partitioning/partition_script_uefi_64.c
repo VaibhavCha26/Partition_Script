@@ -162,9 +162,10 @@ goto_cause_i_am_lazy:
     int efi_status = run_parted_command(efi_partition);
     //
     // HIGH BUG PROBABILITY !!!!
-    snprintf(efi_part,sizeof(efi_part),
-             "/dev/%s1",dir_partition_elements->d_name);
-    //
+    if(efi_status){
+      snprintf(efi_part,sizeof(efi_part),
+              "/dev/%s1",dir_partition_elements->d_name);
+    }
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
