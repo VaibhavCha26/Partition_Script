@@ -171,6 +171,9 @@ goto_cause_i_am_lazy:
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
     //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
     //
+    //
+    //
+    sync();
     int re_read_check_partition = ioctl(partition_file_fd,
                                         BLKRRPART,0);
 
@@ -179,7 +182,21 @@ goto_cause_i_am_lazy:
       close(partition_file_fd);
       exit(1);
     }
-    
+    //    even if ioctl works -- it simply means thet the kernel has done his work and recognized its partitions 
+    //    but i have to wait for (init)-udevd daemon finis the actual device node files.
+    //
+  access_check_again:
+    int access_status = access(efi_part,F_OK);
+    if(access_status < 0){
+      printf("\nudevd - son of bitch\n");
+      usleep(60000); // ---> arbitary number ( 60 milliesecond )
+      goto access_check_again;
+    }
+    else{printf("\nudevd worked yay !!\n");}
+    //
+    //
+    //
+    //
     //
     // HIGH BUG PROBABILITY !!!!!!
     // why tf do i need root_part when i have mklabel_disk_path ????????????
@@ -196,6 +213,26 @@ goto_cause_i_am_lazy:
     if(root_status != 0){perror("root partitioning failed wtf:");close(partition_file_fd);closedir(dir_partition);
       exit(1);}
     // creating path to the individual partitions - cause why not ?
+    //
+    //
+    sync();
+    int re_read_check_partition_2 = ioctl(partition_file_fd,
+                                        BLKRRPART,0);
+
+    if(re_read_check_partition_2 < 0){
+      closedir(dir_partition);
+      close(partition_file_fd);
+      exit(1);
+    }
+
+  access_check_again2:
+    int access_status_root = access(root_part,F_OK);
+    if(access_status_root < 0){
+      printf("\nudevd - son of bitch\n");
+      usleep(60000); // ---> arbitary number ( 60 milliesecond )
+      goto access_check_again2;
+    }
+    else{printf("\nudevd worked yay !!\n");}
     //
   }
   //
