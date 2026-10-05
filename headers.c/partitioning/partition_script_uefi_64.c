@@ -187,13 +187,12 @@ goto_cause_i_am_lazy:
     //    but i have to wait for (init)-udevd daemon finis the actual device node files.
     //
     int max_goto_access_check_counter = 0;
-    
+    int usleep_initial_multiplier = 60000;
   access_check_again:
     int access_status = access(efi_part,F_OK);
     if(access_status < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(151231); // ---> arbitary number ( 151 milliesecond )
-      // better implementation -- Just start with a arbitary number and continuously increase it.
+      usleep(usleep_initial_multiplier * (max_goto_access_check_counter + 1));
       max_goto_access_check_counter++;
 
       if(max_goto_access_check_counter < 100){
@@ -239,12 +238,12 @@ goto_cause_i_am_lazy:
       close(partition_file_fd);
       exit(1);
     }
-    
   access_check_again2:
     int access_status_root = access(root_part,F_OK);
     if(access_status_root < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(151231); // ---> arbitary number ( 151 milliesecond )
+      usleep(usleep_initial_multiplier * (max_goto_access_check_counter + 1));
+      max_goto_access_check_counter++;
 
       if(max_goto_access_check_counter < 100){
         goto access_check_again;
