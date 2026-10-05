@@ -34,7 +34,7 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   if(!dir_partition){perror("opening /dev failed:"); closedir(dir_partition);
     exit(1);}
   
-int null_counter = 0;
+  int null_counter = 0;
 goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
   //
@@ -173,6 +173,13 @@ goto_cause_i_am_lazy:
     //
     int re_read_check_partition = ioctl(partition_file_fd,
                                         BLKRRPART,0);
+
+    if(re_read_check_partition < 0){
+      closedir(dir_partition);
+      close(partition_file_fd);
+      exit(1);
+    }
+    
     //
     // HIGH BUG PROBABILITY !!!!!!
     // why tf do i need root_part when i have mklabel_disk_path ????????????
@@ -205,10 +212,4 @@ goto_cause_i_am_lazy:
 
   return 0;
 }
-
-// ioctl approach 
-void partition_status_check(){
-}
-//
-// udevaadm settle approach - wtf is that T-T;
 
