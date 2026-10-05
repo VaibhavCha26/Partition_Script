@@ -192,7 +192,7 @@ goto_cause_i_am_lazy:
     int access_status = access(efi_part,F_OK);
     if(access_status < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(151231); // ---> arbitary number ( 60 milliesecond )
+      usleep(151231); // ---> arbitary number ( 151 milliesecond )
       // better implementation -- Just start with a arbitary number and continuously increase it.
       max_goto_access_check_counter++;
 
@@ -207,6 +207,7 @@ goto_cause_i_am_lazy:
       }
     }
     else{printf("\nudevd worked yay !!\n");}
+    max_goto_access_check_counter = 0;
     //
     //
     //
@@ -238,13 +239,23 @@ goto_cause_i_am_lazy:
       close(partition_file_fd);
       exit(1);
     }
-
+    
   access_check_again2:
     int access_status_root = access(root_part,F_OK);
     if(access_status_root < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(151231); // ---> arbitary number ( 60 milliesecond )
-      goto access_check_again2;
+      usleep(151231); // ---> arbitary number ( 151 milliesecond )
+
+      if(max_goto_access_check_counter < 100){
+        goto access_check_again;
+      }
+      else{
+        perror("acces_check max counter reached -- failed: ");
+        closedir(dir_partition);
+        close(partition_file_fd);
+        exit(1);
+      }
+
     }
     else{printf("\nudevd worked yay !!\n");}
     //
