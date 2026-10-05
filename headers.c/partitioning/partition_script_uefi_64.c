@@ -171,7 +171,8 @@ goto_cause_i_am_lazy:
     // 2. udevadm settle - when i partition the disk - a new device node will be create like /dev/sdb1 - this should watch the 
     //                  something like th udev event queue and pause the script until all triggered kernel device event has been completely processsed.
     //
-    //if(){} --- implementation later.
+    int re_read_check_partition = ioctl(partition_file_fd,
+                                        BLKRRPART,0);
     //
     // HIGH BUG PROBABILITY !!!!!!
     // why tf do i need root_part when i have mklabel_disk_path ????????????
