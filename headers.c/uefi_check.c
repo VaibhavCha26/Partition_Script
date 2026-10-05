@@ -56,7 +56,7 @@ int uefi_checking(void){
   //
   //
   DIR *dir = opendir(FW_SIZE); // DIR and dirent are specific data types that system use for dir and things inside that dir.
-  if(dir==NULL){perror("THE SYSTEM IS BIOS:");closedir(dir);exit(1);}
+  if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
   //
 next_element_dir:
   entry_of_dir = readdir(dir); // conveyor belt )-);
