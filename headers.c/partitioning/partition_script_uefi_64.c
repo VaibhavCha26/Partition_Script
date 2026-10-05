@@ -63,7 +63,7 @@ goto_cause_i_am_lazy:
       exit(1);
     }
     null_counter++;
-    if(null_counter < 1){
+    if(null_counter < 100){
       goto goto_cause_i_am_lazy;
     }
    // dangerous stuff because i am very lazy :P 
@@ -160,7 +160,6 @@ goto_cause_i_am_lazy:
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
     int efi_status = run_parted_command(efi_partition);
-    if(efi_status != 0){perror("efi partition not created T-T:");close(partition_file_fd);closedir(dir_partition);exit(1);}
     //
     // HIGH BUG PROBABILITY !!!!
     snprintf(efi_part,sizeof(efi_part),
@@ -181,7 +180,7 @@ goto_cause_i_am_lazy:
     //
     //
     //now root partiton ;
-    char* root_partition[] = {"parted","-s",root_part,"mkpart",
+    char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
       "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
     //
     //
