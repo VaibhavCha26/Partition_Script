@@ -149,7 +149,8 @@ goto_cause_i_am_lazy:
     };
     //
     int mklabel_status = run_parted_command(argv);
-    if(mklabel_status != 0){perror("labelling failed:");close(partition_file_fd);closedir(dir_partition);}
+    if(mklabel_status != 0){perror("labelling failed:");close(partition_file_fd);
+      closedir(dir_partition);exit(1);}
 
     //not that the disk is in the gpt format - we can change the actual partition format of it;
     char* efi_partition[] = {"parted","-s",abs_disk_path,"mkpart",
@@ -162,7 +163,7 @@ goto_cause_i_am_lazy:
     int efi_status = run_parted_command(efi_partition);
     //
     // HIGH BUG PROBABILITY !!!!
-    if(efi_status){
+    if(efi_status == 0){
       snprintf(efi_part,sizeof(efi_part),
               "/dev/%s1",dir_partition_elements->d_name);
     }
@@ -185,12 +186,25 @@ goto_cause_i_am_lazy:
     //    even if ioctl works -- it simply means thet the kernel has done his work and recognized its partitions 
     //    but i have to wait for (init)-udevd daemon finis the actual device node files.
     //
+    int max_goto_access_check_counter = 0;
+    
   access_check_again:
     int access_status = access(efi_part,F_OK);
     if(access_status < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(60000); // ---> arbitary number ( 60 milliesecond )
-      goto access_check_again;
+      usleep(151231); // ---> arbitary number ( 60 milliesecond )
+      // better implementation -- Just start with a arbitary number and continuously increase it.
+      max_goto_access_check_counter++;
+
+      if(max_goto_access_check_counter < 100){
+        goto access_check_again;
+      }
+      else{
+        perror("acces_check max counter reached -- failed: ");
+        closedir(dir_partition);
+        close(partition_file_fd);
+        exit(1);
+      }
     }
     else{printf("\nudevd worked yay !!\n");}
     //
@@ -229,7 +243,7 @@ goto_cause_i_am_lazy:
     int access_status_root = access(root_part,F_OK);
     if(access_status_root < 0){
       printf("\nudevd - son of bitch\n");
-      usleep(60000); // ---> arbitary number ( 60 milliesecond )
+      usleep(151231); // ---> arbitary number ( 60 milliesecond )
       goto access_check_again2;
     }
     else{printf("\nudevd worked yay !!\n");}
