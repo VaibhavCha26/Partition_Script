@@ -161,11 +161,12 @@ goto_cause_i_am_lazy:
     // primary : simply for the older mbr types - crucial for them - parted is forcing to use it becuase it want to be backwardly compatible - useless on gpt disks.
     // fat32 : ??? wtf is a hex marker?
     int efi_status = run_parted_command(efi_partition);
-    //
     // HIGH BUG PROBABILITY !!!!
     if(efi_status == 0){
-      snprintf(efi_part,sizeof(efi_part),
-              "/dev/%s1",dir_partition_elements->d_name);
+      if( strcmp(partition_disk_path,efi_part) != 0){
+        snprintf(efi_part,sizeof(efi_part),
+                "/dev/%s1",dir_partition_elements->d_name);
+      }
     }
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
@@ -213,10 +214,11 @@ goto_cause_i_am_lazy:
     //
     //
     // HIGH BUG PROBABILITY !!!!!!
-    // why tf do i need root_part when i have mklabel_disk_path ????????????
-    snprintf(root_part,sizeof(root_part),
-             "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
-    //
+    // why tf do i need root_part when i have mklabel_disk_path ?????????
+    if( strcmp(partition_disk_path,root_part) != 0){
+      snprintf(root_part,sizeof(root_part),
+              "/dev/%s2",dir_partition_elements->d_name); // are you sure this is the right element? what about /dev/sda1 and something like that ?
+    }
     //
     //now root partiton ;
     char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
