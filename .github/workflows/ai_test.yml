@@ -1,0 +1,49 @@
+name: Repo code ai check
+
+# triggers
+on:
+  pull_request:
+    branches: [ "main" ]
+
+# Elevated permissions are required so the action can write reviews and merge the PR
+permissions:
+  contents: write
+  pull-requests: write
+
+# actual work 
+jobs:
+  review-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check entire repo code
+        uses: actions/checkout@v4
+
+      # id: ai_review' so the gatekeeper step can read its output
+      - name: Ai review 
+        id: ai_review
+        uses: coderabbitai/ai-pr-reviewer@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          AI_PROVIDER: "google"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        # Fix: 'with:' must be aligned directly under 'uses', not nested inside 'env'
+        with:
+          config_path: "coderabbit/.coderabbit.yaml"
+
+      # gatekeeper status
+      - name: Gatekeeper Merge Check
+        run: |
+          if echo "${{ steps.ai_review.outputs.review_text }}" | grep -q "FINAL DECISION: REJECTED"; then
+            echo "❌ AI Review flagged a HIGH priority issue. Blocking merge until next fix commit."
+            exit 1
+          fi
+
+      # automatically merge to main if the AI/test pass
+      - name: Auto-Merge PR
+        uses: pascalgn/automerge-action@v0.16.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          MERGE_LABELS: ""
+          MERGE_METHOD: "merge"
+
