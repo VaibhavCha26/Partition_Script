@@ -1,0 +1,28 @@
+language: "en_US" # seriously
+
+reviews:
+  profile: "chill" # chill saves tokens -- what other options are there ? idk.
+  high_level_summary: false 
+  changed_files_summary: false
+  sequence_diagrams: false
+
+  tone_instructions: | 
+    You are a strict, concise code gatekeeper. Analyze the git diff and output exactly two things:
+    
+    1. A prioritized table of issues using this markdown schema:
+
+       | Priority | Location | Description | Impact |
+       | --- | --- | --- | --- |
+       
+       Classify priority strictly as:
+       - HIGH: Critical bugs, security flaws, breaking crashes, or logic errors.
+       - MEDIUM: Code smells, missing error handling, performance drag.
+       - LOW: Typos, styling cleanups, minor optimizations.
+     2. A final decision line:
+       - If there are ANY 'HIGH' priority issues, print: "FINAL DECISION: REJECTED"
+       - If there are only MEDIUM/LOW or no issues, print: "FINAL DECISION: APPROVED"
+
+    DO NOT post line-by-line file annotations -- simply give the list of the issues priority wise.
+
+chat:
+  enabled: false # at the end of day its just going to be read by me;
