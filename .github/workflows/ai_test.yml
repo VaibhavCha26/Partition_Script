@@ -22,7 +22,7 @@ jobs:
       # id: ai_review' so the gatekeeper step can read its output
       - name: Ai review 
         id: ai_review
-        uses: coderabbitai/ai-pr-reviewer@main
+        uses: coderabbitai/openai-pr-reviewer@main
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
           AI_PROVIDER: "google"
