@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+int exit_code = 0;
 //. The issue is not this function itself — it’s that the surrounding repo never properly defines the command arguments or validates the target device.
 //
 // abstraction : nice :)
@@ -44,11 +45,17 @@ int run_parted_command(char* argv[]){
     //
     //return 0; -- hmm O_O.
   }
+  else{
+    perror("Fork call failed sorry T-T: ");
+    exit(1);
+  }
   // do i need the childs process status?
   // Yes T-T 
   int child_process_status;
-  waitpid(id_parted_fork_call,&child_process_status,0);
 
+  waitpid(id_parted_fork_call,&child_process_status,0);
+  
+  
   // wifexited - for checking if it finished normally -- 0 / 1 
   // wexitstatus - for checking what integer it returns exactly.
   //
@@ -56,8 +63,12 @@ int run_parted_command(char* argv[]){
   if(WIFEXITED(child_process_status)){
     // NULL ? >_> are you sure? :P
     // why not wait() ?
-    int exit_code = WEXITSTATUS(child_process_status);
-    return exit_code;
+    exit_code = WEXITSTATUS(child_process_status);
+    return 0;
+  }
+  else {
+    perror("child process failed from closing -- dangerous ?");
+    exit(1);
   }
   return -1; // child didn't exit normally;
 }
