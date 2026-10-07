@@ -35,7 +35,7 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
   if(efi_user_part == NULL){efi_user_part = efi_part;}
   if(root_user_part == NULL){root_user_part = root_part;}
 
-  if(partitioning_status)
+  if(partitioning_status == 0)
   {
   // can use mknod() and mkdir() --> to create those dirs inside /mnt but pain;
   // modern linux kernels hate mknod becuase of metadata corruption :( T-T
