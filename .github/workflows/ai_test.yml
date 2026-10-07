@@ -23,8 +23,6 @@ jobs:
       - name: Google Ai review
         id: ai_review
         uses: google-github-actions/run-gemini-cli@v0
-        with:
-          config_path: "./gemini/gemini-commands.md"
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
