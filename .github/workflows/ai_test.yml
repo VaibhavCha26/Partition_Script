@@ -33,17 +33,27 @@ jobs:
 
       # gatekeeper status
       - name: Gatekeeper Merge Check
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         run: |
-          if echo "${{ steps.ai_review.outputs.review_text }}" | grep -q "FINAL DECISION: REJECTED"; then
+          # wait first for the return of comments;
+          sleep 15
+          # api call returns a raw json array containing object metadata;
+          COMMENTS=$(gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[].body')
+
+          # instead check comments for rejected;
+          if echo "$COMMENTS" | grep -q "FINAL DECISION: REJECTED"; then
             echo "❌ AI Review flagged a HIGH priority issue. Blocking merge until next fix commit."
             exit 1
+          else
+            echo "AI review passed or not critical issues found"
           fi
 
       # automatically merge to main if the AI/test pass
-      - name: Auto-Merge PR
-        uses: pascalgn/automerge-action@v0.16.4
+      - name: Auto-Merge PR (native cli)
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
-          MERGE_LABELS: ""
-          MERGE_METHOD: "merge"
+        run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto
 
