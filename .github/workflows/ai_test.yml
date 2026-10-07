@@ -22,13 +22,14 @@ jobs:
       # id: ai_review' so the gatekeeper step can read its output
       - name: Google Ai review
         id: ai_review
-        uses: google-github-actions/gemini-github-actions/review-pr@v1
+        uses: google-github-actions/run-gemini-cli@v0
         env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         # Fix: 'with:' must be aligned directly under 'uses', not nested inside 'env'
         with:
-          config_path: "coderabbit/.coderabbit.yaml"
+          config_path: "./gemini/gemini-commands.md"
 
       # gatekeeper status
       - name: Gatekeeper Merge Check
