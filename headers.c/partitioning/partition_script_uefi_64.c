@@ -66,6 +66,17 @@ goto_cause_i_am_lazy:
     if(null_counter < 100){
       goto goto_cause_i_am_lazy;
     }
+    int device_check_user = 0;
+    printf("Are you sure this is the device? /dev/%s ",
+           dir_partition_elements->d_name);
+    scanf("%d",&device_check_user);
+    if(device_check_user != 1){
+      perror("\n niga wtf ? >>_>>");
+      closedir(dir_partition);
+      exit(1);
+    }
+
+
    // dangerous stuff because i am very lazy :P 
     // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
   }
@@ -167,6 +178,11 @@ goto_cause_i_am_lazy:
         snprintf(efi_part,sizeof(efi_part),
                 "/dev/%s1",dir_partition_elements->d_name);
       }
+      else {
+        closedir(dir_partition);
+        close(partition_file_fd);
+        exit(1);
+      }
     }
     // NEED TO FORCE THE PROGRAM TO STOP TILL THE PARTITIONING IS COMPLETE.
     // 1. partprobe -- reread the partition table (kernel)
@@ -248,7 +264,7 @@ goto_cause_i_am_lazy:
       max_goto_access_check_counter++;
 
       if(max_goto_access_check_counter < 100){
-        goto access_check_again;
+        goto access_check_again2;
       }
       else{
         perror("acces_check max counter reached -- failed: ");
