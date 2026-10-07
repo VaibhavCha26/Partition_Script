@@ -1,0 +1,61 @@
+name: Repo code ai check
+
+# triggers
+on:
+  pull_request:
+    branches: [ "main" ]
+
+# Elevated permissions are required so the action can write reviews and merge the PR
+permissions:
+  contents: write
+  pull-requests: write
+
+# actual work 
+jobs:
+  review-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check entire repo code
+        uses: actions/checkout@v4
+
+      # id: ai_review' so the gatekeeper step can read its output
+      - name: Google Ai review
+        id: ai_review
+        uses: google-github-actions/run-gemini-cli@v0
+        with:
+          config_path: "./gemini/gemini-commands.md"
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          config_path: "./gemini/gemini-commands.md"
+
+      # gatekeeper status
+      - name: Gatekeeper Merge Check
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # wait first for the return of comments;
+          sleep 15
+          # api call returns a raw json array containing object metadata;
+          COMMENTS=$(gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[].body')
+
+          # instead check comments for rejected;
+          if echo "$COMMENTS" | grep -q "FINAL DECISION: REJECTED"; then
+            echo "❌ AI Review flagged a HIGH priority issue. Blocking merge until next fix commit."
+            exit 1
+          else
+            echo "AI review passed or not critical issues found"
+          fi
+
+      # automatically merge to main if the AI/test pass
+      - name: Auto-Merge PR (native cli)
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+        run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto
+
