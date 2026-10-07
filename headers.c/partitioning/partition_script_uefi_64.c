@@ -35,6 +35,7 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
     exit(1);}
   
   int null_counter = 0;
+  int recheck_counter = 0;
 goto_cause_i_am_lazy:
   struct dirent* dir_partition_elements = readdir(dir_partition);
   //
@@ -47,7 +48,6 @@ goto_cause_i_am_lazy:
   // another problem how to make sure that its the right file and not some random shit ? 
   //
   // -->> this condition was making sure i can't iterate on the /dev so removed it.
-  //
   int device_check = 0;
   // technically the issue is that now whatever the first element there is in /dev after . and .. would be taken there is not checking
   // device detection doesn't validate the target device
@@ -71,14 +71,30 @@ goto_cause_i_am_lazy:
            dir_partition_elements->d_name);
     scanf("%d",&device_check_user);
     if(device_check_user != 1){
-      perror("\n niga wtf ? >>_>>");
+      perror("\n niga wtf ? >>_>> it contains no such partitions counter reached over 100: ");
+      if(recheck_counter != 1){
+        recheck_counter++;
+        null_counter = 0;
+        goto goto_cause_i_am_lazy;
+      }
+      else{
+        closedir(dir_partition);
+        exit(1);
+      }
+    }
+    else {
+      perror("that device contains no such partitions.");
       closedir(dir_partition);
       exit(1);
     }
-
-
    // dangerous stuff because i am very lazy :P 
     // technically should have used a loop somehow but that would mean restructuring a lot of stuff 
+  }
+  
+  else {
+    perror("device not found:");
+    closedir(dir_partition);
+    exit(1);
   }
   char partition_disk_path[64];
   snprintf(partition_disk_path,sizeof(partition_disk_path),
