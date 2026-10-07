@@ -44,7 +44,7 @@ int run_parted_command(char* argv[]){
     //
     //return 0; -- hmm O_O.
   }
-  else {
+  else if (id_parted_fork_call < 0){
     perror("fork failed in run_parted_command: ");
     exit(1);
   }
@@ -52,11 +52,13 @@ int run_parted_command(char* argv[]){
   // Yes T-T 
   int goto_counter_wait = 0;
   int child_process_status;
-try_waiting_again:
   pid_t pid_waitpid = waitpid(id_parted_fork_call,&child_process_status,WNOHANG);
-  if(pid_waitpid != 0){
+  //
+try_waiting_again:
+  if(pid_waitpid == 0){
     usleep(10000);
     if(goto_counter_wait < 100){
+      goto_counter_wait++;
       goto try_waiting_again;
     }
     else {
@@ -64,7 +66,7 @@ try_waiting_again:
       exit(1);
     }
   }
-  else{
+  else if (pid_waitpid < 0){
     perror("child process failed:");
     exit(1);
   }
