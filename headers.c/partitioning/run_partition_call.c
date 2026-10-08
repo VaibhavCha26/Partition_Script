@@ -45,17 +45,32 @@ int run_parted_command(char* argv[]){
     //
     //return 0; -- hmm O_O.
   }
-  else{
-    perror("Fork call failed sorry T-T: ");
+  else if (id_parted_fork_call < 0){
+    perror("fork failed in run_parted_command: ");
     exit(1);
   }
   // do i need the childs process status?
   // Yes T-T 
+  int goto_counter_wait = 0;
   int child_process_status;
-
-  waitpid(id_parted_fork_call,&child_process_status,0);
-  
-  
+  pid_t pid_waitpid = waitpid(id_parted_fork_call,&child_process_status,WNOHANG);
+try_waiting_again:
+  pid_waitpid = waitpid(id_parted_fork_call,&child_process_status,WNOHANG);
+  if(pid_waitpid == 0){
+    usleep(10000);
+    if(goto_counter_wait < 100){
+      goto_counter_wait++;
+      goto try_waiting_again;
+    }
+    else {
+      perror("Waitpid Timeout error: fuck T_T");
+      exit(1);
+    }
+  }
+  else if (pid_waitpid < 0){
+    perror("child process failed:");
+    exit(1);
+  }
   // wifexited - for checking if it finished normally -- 0 / 1 
   // wexitstatus - for checking what integer it returns exactly.
   //
@@ -68,6 +83,10 @@ int run_parted_command(char* argv[]){
   }
   else {
     perror("child process failed from closing -- dangerous ?");
+    exit(1);
+  }
+  else{
+    perror("What ? wifexited failed -- like what ??");
     exit(1);
   }
   return -1; // child didn't exit normally;
