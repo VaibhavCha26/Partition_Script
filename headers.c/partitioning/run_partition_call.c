@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+int exit_code = 0;
 //. The issue is not this function itself — it’s that the surrounding repo never properly defines the command arguments or validates the target device.
 //
 // abstraction : nice :)
@@ -77,8 +78,12 @@ try_waiting_again:
   if(WIFEXITED(child_process_status)){
     // NULL ? >_> are you sure? :P
     // why not wait() ?
-    int exit_code = WEXITSTATUS(child_process_status);
-    return exit_code;
+    exit_code = WEXITSTATUS(child_process_status);
+    return 0;
+  }
+  else {
+    perror("child process failed from closing -- dangerous ?");
+    exit(1);
   }
   else{
     perror("What ? wifexited failed -- like what ??");
