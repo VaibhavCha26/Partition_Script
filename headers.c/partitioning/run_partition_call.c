@@ -52,9 +52,8 @@ int run_parted_command(char* argv[]){
   // Yes T-T 
   int goto_counter_wait = 0;
   int child_process_status;
+  try_waiting_again:
   pid_t pid_waitpid = waitpid(id_parted_fork_call,&child_process_status,WNOHANG);
-  //
-try_waiting_again:
   if(pid_waitpid == 0){
     usleep(10000);
     if(goto_counter_wait < 100){
