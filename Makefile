@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -I. -Wall -Wextra
+CFLAGS = -I. -Wall -Wextra -Werror
 TARGET = install_script
 SOURCES = install_script.c \
 					headers.c/uefi_check.c \
