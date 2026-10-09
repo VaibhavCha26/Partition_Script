@@ -32,12 +32,16 @@
 //
 int mounting_status(char efi_user_part[64], char root_user_part[64])
 {
-  int partitioning_status = format_partitioned_space();
   int user_confirmation_partitioning = user_confirm_status("Formatting called: ");
+  if(user_confirmation_partitioning == 0){
+    exit(1);
+  }
+
+  int partitioning_status = format_partitioned_space();
   if(efi_user_part == NULL){efi_user_part = efi_part;}
   if(root_user_part == NULL){root_user_part = root_part;}
 
-  if(partitioning_status == 0 && user_confirmation_partitioning)
+  if(partitioning_status == 0)
   {
   // can use mknod() and mkdir() --> to create those dirs inside /mnt but pain;
   // modern linux kernels hate mknod becuase of metadata corruption :( T-T
@@ -49,7 +53,7 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
     //   Inode is a strict fixed size 128 byte binary structure that lives at the beginning of the partition - so like header for a page;
     //   points to the physcial sectors exactly where the actual data of the drive that hold the content of the file 
     //   -- DOES NOT CONTAIN THE NAME OF THE FILE;
-    //          EXT4 PARTITION HARDWARE LAYOUT:
+  //          EXT4 PARTITION HARDWARE LAYOUT:
 //┌──────────────────┬──────────────────┬──────────────────┐
 //│   Inode Bitmap   │   Inode Table    │   Data Blocks    │
 //│  [011111000...]  │  [ ... ][Slot 4] │  [Block 8402]    │
