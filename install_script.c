@@ -14,15 +14,15 @@ int main(){
     // taking teh default inputs for partiton script call and mount call is not yet implemented.
     //
     // use struct for that 
-    
+    int user_confirmation_partition_uefi64 = user_confirm_status("calling partition_uefi64");
+    if(user_confirmation_partition_uefi64 == 0){perror("you cancelled the call :O"); exit(1);}
     // mounting_status --> format..---> partition ---> run_parted_call ---> ???
     int partition_uefi64_status = partition_uefi64(NULL,
                                                    NULL); // for now.
-    int user_confirmation_partition = user_confirm_status("partition_uefi64");
-    if(partition_uefi64_status == 0 && user_confirmation_partition){
+    int user_confirmation_mounting = user_confirm_status("partition_uefi64 done now calling mounting:");
+    if(partition_uefi64_status == 0 && (user_confirmation_mounting == 1)){
       int mount_status = mounting_status(NULL,NULL); 
-      int user_confirmation_mounting = user_confirm_status("mounting (NULL passed) ");
-      if(mount_status == 0 || user_confirmation_mounting){printf("mounting_done ! T-T \n");}
+      if(mount_status == 0){printf("mounting_done ! T-T \n");}
       //
       // suppose something is opened is some other file or proccess and i call exit here -- then that will stay open right 
       // and it would be dangerous -- how to fix it : not implemented;

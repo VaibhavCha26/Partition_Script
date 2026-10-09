@@ -59,11 +59,15 @@ int uefi_checking(void){
   DIR *dir = opendir(FW_SIZE); // DIR and dirent are specific data types that system use for dir and things inside that dir.
   if(dir==NULL){perror("THE SYSTEM IS BIOS:");exit(1);}
   //
+  int user_confirmation_readdir = user_confirm_status("readdir called (conveyor belt) ");
+  if (user_confirmation_readdir == 0){
+    perror("cancelled calling readdir fuck you :) ");
+    exit(1);
+  }
 next_element_dir:
   entry_of_dir = readdir(dir); // conveyor belt )-);
-  int user_confirmation_readdir = user_confirm_status("readdir called (conveyor belt) ");
-
-  if(entry_of_dir==NULL && (user_confirmation_readdir) ){perror("nothing inside /sys/firmware/efi: or you may have cancelled readdir:");closedir(dir);
+  
+  if(entry_of_dir==NULL){perror("nothing inside /sys/firmware/efi: or you may have cancelled readdir:");closedir(dir);
     exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
   // and get a struct to individual files inside it for data defined by pointers :| 
