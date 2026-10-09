@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../headers.h/uefi_check.h"
+#include "../headers.h/safety_steps/user_confirmation.h"
 #include "../headers.h/mounting.h"
 #include "../headers.h/partitioning/format_partitioned_space.h"
 #include "../headers.h/partitioning/partition_script_uefi_64.h"
@@ -32,10 +33,11 @@
 int mounting_status(char efi_user_part[64], char root_user_part[64])
 {
   int partitioning_status = format_partitioned_space();
+  int user_confirmation_partitioning = user_confirm_status("Formatting called: ");
   if(efi_user_part == NULL){efi_user_part = efi_part;}
   if(root_user_part == NULL){root_user_part = root_part;}
 
-  if(partitioning_status == 0)
+  if(partitioning_status == 0 && user_confirmation_partitioning)
   {
   // can use mknod() and mkdir() --> to create those dirs inside /mnt but pain;
   // modern linux kernels hate mknod becuase of metadata corruption :( T-T
@@ -152,9 +154,12 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
     //
     // for now /dev/vda is fine - later will add checking for it.
     // again same making the kernel wait problem
+    //
+    int user_confirmation_called_default_args = 
+      user_confirm_status("NULL passed (user pref option not implemented) Default values are being used :) ");
     if(mount(root_user_part,
              "/mnt",
-             "ext4",0,NULL) < 0){
+             "ext4",0,NULL) < 0 && user_confirmation_called_default_args){
       // T-T - 
       perror("Mounting of root_part failed:");
       exit(1);
@@ -168,7 +173,7 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
              "/mnt/boot",
              "vfat",
              0,
-             NULL) < 0){
+             NULL) < 0 && user_confirmation_called_default_args){
       perror("Mounting for boot fomat partition failed:");
       exit(1);
     }
