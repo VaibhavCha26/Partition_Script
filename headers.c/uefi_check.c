@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "../headers.h/uefi_check.h"
+#include "../headers.h/safety_steps/user_confirmation.h"
 //An installer cannot operate as a simple, forward-moving stream. 
 //It is a state machine that relies heavily on a Request-Response-Verify loop.
 //installer is like a security guard - each instruction is given to the kernel only when the kernel gives the confirmation for the previous code.
@@ -60,7 +61,9 @@ int uefi_checking(void){
   //
 next_element_dir:
   entry_of_dir = readdir(dir); // conveyor belt )-);
-  if(entry_of_dir==NULL){perror("nothing inside /sys/firmware/efi:");closedir(dir);
+  int user_confirmation_readdir = user_confirm_status("readdir called (conveyor belt) ");
+
+  if(entry_of_dir==NULL && (user_confirmation_readdir) ){perror("nothing inside /sys/firmware/efi: or you may have cancelled readdir:");closedir(dir);
     exit(1);}
   // opendir simply gives the dir stream pointer -- so basically the location of conveyor belt ? we need readdir to read inside the dir 
   // and get a struct to individual files inside it for data defined by pointers :| 
