@@ -10,12 +10,18 @@
 #include "../../../headers.h/dir_making_options/pacstrap_option.h"
 #include "../../../headers.h/dir_making_options/pacstrap_call.h"
 #include "../../../headers.h/partitioning/partition_script_uefi_64.h"
-
+#include "../../../headers.h/safety_steps/user_confirmation.h"
 int pacstrap_option(char* dir_choices[]){ // same thing - checking for dir_choices - valid or not;
   if(mounting_status(efi_part,root_part) == 0)
   {
     if(dir_choices == NULL)
     {
+      if(user_confirm_status(
+        "default values passed to pacstrap_call") == 0){
+        perror("stopped calling pacstrap_call");
+        exit(1);
+      }
+      
       char *default_dir_choices[] = {"pacstrap","-K","/mnt",
         "base","linux",
         "linux-firmware","neovim","networkmanager",NULL};
@@ -26,6 +32,10 @@ int pacstrap_option(char* dir_choices[]){ // same thing - checking for dir_choic
     { 
       // check everything about the given dir_choices;
       // what is the best way to do it ?
+      if (user_confirm_status("Calling pacstrap_call: ") == 0) {
+        perror("stopped calling pacstrap_call");
+        exit(1);       
+      }
       pacstrap_call(dir_choices);
     }  
   }
