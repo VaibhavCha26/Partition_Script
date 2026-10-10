@@ -72,11 +72,6 @@ try_waiting_again:
     perror("child process failed:");
     exit(1);
   }
-  else {
-    perror("child process failed from closing -- dangerous ?");
-    exit(1);
-  }
-
   // wifexited - for checking if it finished normally -- 0 / 1 
   // wexitstatus - for checking what integer it returns exactly.
   //
