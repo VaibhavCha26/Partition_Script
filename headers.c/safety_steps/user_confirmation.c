@@ -11,7 +11,11 @@ int user_confirm_status(char* string_to_be_confirmed){
     perror("Confirmation call failed EXIT:");
     return 0;
   }
-  else {
+  else if(user_status == 1){
     return 1;
+  }
+  else {
+    printf("wrong input: bitch :O");
+    return 0;
   }
 }
