@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../headers.h/uefi_check.h"
+#include "../headers.h/safety_steps/user_confirmation.h"
 #include "../headers.h/mounting.h"
 #include "../headers.h/partitioning/format_partitioned_space.h"
 #include "../headers.h/partitioning/partition_script_uefi_64.h"
@@ -31,6 +32,11 @@
 //
 int mounting_status(char efi_user_part[64], char root_user_part[64])
 {
+  int user_confirmation_partitioning = user_confirm_status("Formatting called: ");
+  if(user_confirmation_partitioning == 0){
+    exit(1);
+  }
+
   int partitioning_status = format_partitioned_space();
   if(efi_user_part == NULL){efi_user_part = efi_part;}
   if(root_user_part == NULL){root_user_part = root_part;}
@@ -47,7 +53,7 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
     //   Inode is a strict fixed size 128 byte binary structure that lives at the beginning of the partition - so like header for a page;
     //   points to the physcial sectors exactly where the actual data of the drive that hold the content of the file 
     //   -- DOES NOT CONTAIN THE NAME OF THE FILE;
-    //          EXT4 PARTITION HARDWARE LAYOUT:
+  //          EXT4 PARTITION HARDWARE LAYOUT:
 //┌──────────────────┬──────────────────┬──────────────────┐
 //│   Inode Bitmap   │   Inode Table    │   Data Blocks    │
 //│  [011111000...]  │  [ ... ][Slot 4] │  [Block 8402]    │
@@ -152,6 +158,11 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
     //
     // for now /dev/vda is fine - later will add checking for it.
     // again same making the kernel wait problem
+    //
+    int user_confirmation_called_default_args = 
+      user_confirm_status("NULL passed (user pref option not implemented) Default values are being used :) ");
+    
+    if(user_confirmation_called_default_args == 0){exit(1);}
     if(mount(root_user_part,
              "/mnt",
              "ext4",0,NULL) < 0){

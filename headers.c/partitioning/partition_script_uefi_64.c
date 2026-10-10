@@ -1,5 +1,7 @@
 #include "../../headers.h/partitioning/run_partition_call.h"
+#include "../../headers.h/partitioning/partition_script_uefi_64.h"
 #include "../../headers.h/uefi_check.h"
+#include "../../headers.h/safety_steps/user_confirmation.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -36,8 +38,14 @@ int partition_uefi64(char* partitions_to_be_made[],char* argv[]){
   
   int null_counter = 0;
   int recheck_counter = 0;
-goto_cause_i_am_lazy:
+  if(user_confirm_status("readdir to be called (starting elevator and goto):") == 0){
+    perror("readdir cancelled: \n");
+    closedir(dir_partition);
+    exit(1);}
+
   struct dirent* dir_partition_elements = readdir(dir_partition);
+goto_cause_i_am_lazy:
+  dir_partition_elements = readdir(dir_partition);
   //
   //
   if(dir_partition_elements == NULL){printf("dir_partition_elements is null");
@@ -66,12 +74,10 @@ goto_cause_i_am_lazy:
     if(null_counter < 100){
       goto goto_cause_i_am_lazy;
     }
-    int device_check_user = 0;
-    printf("Are you sure this is the device? /dev/%s ",
+    printf("Are you sure this is the device? /dev/%s \n",
            dir_partition_elements->d_name);
-    scanf("%d",&device_check_user);
-    if(device_check_user != 1){
-      perror("\n niga wtf ? >>_>> it contains no such partitions counter reached over 100: ");
+    if(user_confirm_status("calling device confirmation:") == 0){
+      perror("\n niga wtf ? >>_>> it contains no such partitions counter reached over 100: \n");
       if(recheck_counter != 1){
         recheck_counter++;
         null_counter = 0;
@@ -131,6 +137,7 @@ goto_cause_i_am_lazy:
                              &size); // long may only contain 32 bit so..... idk :P
   // Integer Truncation Overflow - wtf -- if i pass that 64 bit into 32 i will triger memory corruption ( writing things not assigned to it ) 
   // and the kernel driver doesn't look at my C variable declaration - it will forcefully fuck the assignement over ? why T-T 
+  
   if(size_of_disk < 0){perror("ioctl failed getting size");printf("\n");
     closedir(dir_partition);
     close(partition_file_fd);exit(1);}
@@ -157,7 +164,7 @@ goto_cause_i_am_lazy:
   //
   //
   //here it would be a problem if its something else except /dev/vda - recalling this would make this entire thing to go again and take on a already formatted disk.
-  if(argv == NULL && uefi_check){
+  if(argv == NULL && uefi_check && user_confirm_status("passing default args to path names:")){
     printf("NULL args : using default:");
 
     char abs_disk_path[64];
@@ -174,7 +181,11 @@ goto_cause_i_am_lazy:
       "gpt",
       NULL
     };
-    //
+    if(user_confirm_status("mklabel formatting called:") == 0){
+      closedir(dir_partition);
+      close(partition_file_fd);
+      exit(1);}
+
     int mklabel_status = run_parted_command(argv);
     if(mklabel_status != 0){perror("labelling failed:");close(partition_file_fd);
       closedir(dir_partition);exit(1);}
@@ -221,8 +232,9 @@ goto_cause_i_am_lazy:
     //
     int max_goto_access_check_counter = 0;
     int usleep_initial_multiplier = 60000;
-  access_check_again:
     int access_status = access(efi_part,F_OK);
+  access_check_again:
+    access_status = access(efi_part,F_OK);
     if(access_status < 0){
       printf("\nudevd - son of bitch\n");
       usleep(usleep_initial_multiplier * (max_goto_access_check_counter + 1));
@@ -256,6 +268,11 @@ goto_cause_i_am_lazy:
     char* root_partition[] = {"parted","-s",abs_disk_path,"mkpart",
       "ext4","513MiB","100%",NULL}; // use 100% of the remaining starting from 513 MiB and make it ext4
     //
+    if(user_confirm_status("calling root_partition for run_parted_command") == 0){
+      closedir(dir_partition);
+      close(partition_file_fd);
+      exit(1);
+    }
     //
     int root_status = run_parted_command(root_partition);
     if(root_status != 0){perror("root partitioning failed wtf:");close(partition_file_fd);closedir(dir_partition);
@@ -272,8 +289,9 @@ goto_cause_i_am_lazy:
       close(partition_file_fd);
       exit(1);
     }
-  access_check_again2:
     int access_status_root = access(root_part,F_OK);
+  access_check_again2:
+    access_status_root = access(root_part,F_OK);
     if(access_status_root < 0){
       printf("\nudevd - son of bitch\n");
       usleep(usleep_initial_multiplier * (max_goto_access_check_counter + 1));
@@ -298,8 +316,8 @@ goto_cause_i_am_lazy:
   //
   //
   // and here if the string is passed the checking of the string - is it correct or not should take place.
-  if(argv != NULL && strcmp(argv[0],"parted") != 0){
-    perror("wrong syscall called : Expected: \"parted\" ");
+  if(argv != NULL && strcmp(argv[0],"parted") != 0 && user_confirm_status("NOT IMPLEMENTED - PASS 0")){
+    perror("wrong syscall called : Expected: \"parted\" or user cancelled this (expected btw) ");
     close(partition_file_fd);
     closedir(dir_partition);
     exit(1);

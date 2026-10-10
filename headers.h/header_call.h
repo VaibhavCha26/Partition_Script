@@ -11,3 +11,4 @@
 #include "./mounting.h"
 #include "./dir_making_options/pacstrap_call.h"
 #include "./dir_making_options/pacstrap_option.h"
+#include "./safety_steps/user_confirmation.h"

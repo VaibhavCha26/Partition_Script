@@ -1,4 +1,5 @@
 #include "../../headers.h/partitioning/run_partition_call.h"
+#include "../../headers.h/safety_steps/user_confirmation.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -82,10 +83,6 @@ try_waiting_again:
     return 0;
   }
   else {
-    perror("child process failed from closing -- dangerous ?");
-    exit(1);
-  }
-  else{
     perror("What ? wifexited failed -- like what ??");
     exit(1);
   }
