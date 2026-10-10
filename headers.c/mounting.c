@@ -161,9 +161,11 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
     //
     int user_confirmation_called_default_args = 
       user_confirm_status("NULL passed (user pref option not implemented) Default values are being used :) ");
+    
+    if(user_confirmation_called_default_args == 0){exit(1);}
     if(mount(root_user_part,
              "/mnt",
-             "ext4",0,NULL) < 0 && user_confirmation_called_default_args){
+             "ext4",0,NULL) < 0){
       // T-T - 
       perror("Mounting of root_part failed:");
       exit(1);
@@ -177,7 +179,7 @@ int mounting_status(char efi_user_part[64], char root_user_part[64])
              "/mnt/boot",
              "vfat",
              0,
-             NULL) < 0 && user_confirmation_called_default_args){
+             NULL) < 0){
       perror("Mounting for boot fomat partition failed:");
       exit(1);
     }
