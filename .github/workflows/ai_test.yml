@@ -29,19 +29,21 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          config_path: "./gemini/gemini-commands.md"
-
+          #config_path: "./gemini/gemini-commands.md"
+          instructions: "./gemini/gemini-commands.md"
       # gatekeeper status
       - name: Gatekeeper Merge Check
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
+          #PR_NUMBER: ${{ github.event.pull_request.number }}
+          #REPO: ${{ github.repository }}
         run: |
           # wait first for the return of comments;
-          sleep 15
+          sleep 100
+          
+
           # api call returns a raw json array containing object metadata;
-          COMMENTS=$(gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[].body')
+          COMMENTS=$(gh api repos/${{github.repository}}/issues/${{github.event.pull_request.number}}/comments --jq '.[].body')
 
           # instead check comments for rejected;
           if echo "$COMMENTS" | grep -q "FINAL DECISION: REJECTED"; then
