@@ -22,6 +22,8 @@ jobs:
       # id: ai_review' so the gatekeeper step can read its output
       - name: Google Ai review
         id: ai_review
+        # continue-on-error -- wtf is this : quota failure won't kill the job so.
+        continue-on-error: true
         uses: google-github-actions/run-gemini-cli@v0
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
@@ -30,16 +32,42 @@ jobs:
         with:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           #config_path: "./gemini/gemini-commands.md"
-          instructions: "./gemini/gemini-commands.md"
-      # gatekeeper status
+          instructions: "./gemini-commands.md"
+          prompt: "Review pull request  #${{ github.event.pull_request.number }} using diff everytime except the first time
+          consider changes to code then only"
+        #
+        #
+          #upon failure this will be called but wait tf? what if both failed : damn T-T;
+      - name: Google_ai_review_open_failure
+        id: ai_fallback
+        if: steps.ai_review.outcome == 'failure' 
+                      || steps.ai_review.outputs.summary == ''
+        #continue-on-error call or not ? what should i do T-T:
+        uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true' #wtf is this??
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY2 }}
+        with:
+          instructions: "./gemini-commands.md"
+
+          prompt: "Review pull request  #${{ github.event.pull_request.number }} using diff everytime except the first time
+          consider changes to code then only"
+
+
+
+          # gatekeeper status
       - name: Gatekeeper Merge Check
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
+          REVIEW: ${{ steps.ai_review.outputs.summary ||
+          steps.ai_fallback.outputs.summary}}
           #PR_NUMBER: ${{ github.event.pull_request.number }}
           #REPO: ${{ github.repository }}
         run: |
           # wait first for the return of comments;
-          sleep 100
+          
+          #sleep 100  -- no longer needed as it now waits for the review from gemini
           
 
           # api call returns a raw json array containing object metadata;
@@ -53,6 +81,24 @@ jobs:
             echo "AI review passed or not critical issues found"
           fi
 
+          #for checking whether all bots failed or not;
+          if [ -z "$REVIEW" ]; then
+            echo "❌ No AI review produced (all bots failed). Blocking."
+            exit 1
+          fi
+          #check if it found something again;
+          if echo "$REVIEW" | grep -q "FINAL DECISION: REJECTED"; then 
+            echo "failed review falgged something blocking merge"
+            exit 1
+          fi
+          #for no approval given
+          if ! echo "$REVIEW" | grep -q "FINAL DECISION: APPROVED"; then
+            echo "❌ no approval given bitch. blocking"
+            exit 1
+          fi
+
+          echo "done bitch."
+      #empty is not a approval for pushing or merging.
       # automatically merge to main if the AI/test pass
       - name: Auto-Merge PR (native cli)
         env:
