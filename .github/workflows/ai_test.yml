@@ -66,7 +66,7 @@ jobs:
       - name: Gatekeeper Merge Check
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
-          REVIEW: ${{ steps.ai_review.outputs.summary || steps.ai_fallback.outputs.summary}}
+          REVIEW: ${{ steps.ai_review.outcome == 'success' && steps.ai_review.outputs.summary || steps.ai_fallback.outputs.summary}}
           #PR_NUMBER: ${{ github.event.pull_request.number }}
           #REPO: ${{ github.repository }}
         run: |
@@ -90,7 +90,7 @@ jobs:
           #  echo "❌ no approval given bitch. blocking"
           #  exit 1
           #fi
-          LAST_LINE=$(printf '%s\n' "REVIEW" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '""' | sed 's/[[:space:]]*$//')
+          LAST_LINE=$(printf '%s\n' "$REVIEW" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '""' | sed 's/[[:space:]]*$//')
           if [ "$LAST_LINE" != "FINAL DECISION: APPROVED" ]; then
             echo "❌ Final line is not an approval. Blocking."
             exit 1
