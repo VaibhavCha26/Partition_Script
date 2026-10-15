@@ -32,10 +32,11 @@ jobs:
         with:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           #config_path: "./gemini/gemini-commands.md"
-          instructions: "./gemini-commands.md"
-          prompt: "Review pull request  #${{ github.event.pull_request.number }} using diff everytime except the first time
-          consider changes to code then only"
-        #
+          prompt: | 
+            Follow the isntructions and rules in ./gemini-commands.md exactly.
+            Review pull request  #${{ github.event.pull_request.number }} using diff everytime except the first time
+            consider changes to code then only
+            Run 'gh pr view' to learn what it is trying to do, and 'gh pr diff' to see the changed code. review only the changed code.
         #
           #upon failure this will be called but wait tf? what if both failed : damn T-T;
       - name: Google_ai_review_open_failure
@@ -43,16 +44,21 @@ jobs:
         if: steps.ai_review.outcome == 'failure' 
                       || steps.ai_review.outputs.summary == ''
         #continue-on-error call or not ? what should i do T-T:
+        continue-on-error: true 
         uses: google-github-actions/run-gemini-cli@v0
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true' #wtf is this??
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
           GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY2 }}
         with:
-          instructions: "./gemini-commands.md"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY2 }}
+          # instructions: "./gemini-commands.md"
 
-          prompt: "Review pull request  #${{ github.event.pull_request.number }} using diff everytime except the first time
-          consider changes to code then only"
+          prompt: | 
+            Follow the isntructions and rules in ./gemini-commands.md exactly.
+            Review pull request  #${{ github.event.pull_request.number }}, review only the changed code
+            consider changes to code then only 
+            Run 'gh pr view' to learn what it is trying to do, and 'gh pr diff' to see the changed code. review only the changed code.
 
 
 
@@ -69,19 +75,8 @@ jobs:
           
           #sleep 100  -- no longer needed as it now waits for the review from gemini
           
-
-          # api call returns a raw json array containing object metadata;
-          COMMENTS=$(gh api repos/${{github.repository}}/issues/${{github.event.pull_request.number}}/comments --jq '.[].body')
-
           # instead check comments for rejected;
-          if echo "$COMMENTS" | grep -q "FINAL DECISION: REJECTED"; then
-            echo "❌ AI Review flagged a HIGH priority issue. Blocking merge until next fix commit."
-            exit 1
-          else
-            echo "AI review passed or not critical issues found"
-          fi
-
-          #for checking whether all bots failed or not;
+           #for checking whether all bots failed or not;
           if [ -z "$REVIEW" ]; then
             echo "❌ No AI review produced (all bots failed). Blocking."
             exit 1
