@@ -66,8 +66,7 @@ jobs:
       - name: Gatekeeper Merge Check
         env:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
-          REVIEW: ${{ steps.ai_review.outputs.summary ||
-          steps.ai_fallback.outputs.summary}}
+          REVIEW: ${{ steps.ai_review.outputs.summary || steps.ai_fallback.outputs.summary}}
           #PR_NUMBER: ${{ github.event.pull_request.number }}
           #REPO: ${{ github.repository }}
         run: |
@@ -77,20 +76,25 @@ jobs:
           
           # instead check comments for rejected;
            #for checking whether all bots failed or not;
-          if [ -z "$REVIEW" ]; then
-            echo "❌ No AI review produced (all bots failed). Blocking."
-            exit 1
-          fi
+          #if [ -z "$REVIEW" ]; then
+          #  echo "❌ No AI review produced (all bots failed). Blocking."
+          #  exit 1
+          #fi
           #check if it found something again;
-          if echo "$REVIEW" | grep -q "FINAL DECISION: REJECTED"; then 
-            echo "failed review falgged something blocking merge"
-            exit 1
-          fi
+          #if echo "$REVIEW" | grep -q "FINAL DECISION: REJECTED"; then 
+          #  echo "failed review falgged something blocking merge"
+          #  exit 1
+          #fi
           #for no approval given
-          if ! echo "$REVIEW" | grep -q "FINAL DECISION: APPROVED"; then
-            echo "❌ no approval given bitch. blocking"
+          #if ! echo "$REVIEW" | grep -q "FINAL DECISION: APPROVED"; then
+          #  echo "❌ no approval given bitch. blocking"
+          #  exit 1
+          #fi
+          LAST_LINE=$(printf '%s\n' "REVIEW" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '""' | sed 's/[[:space:]]*$//')
+          if [ "$LAST_LINE" != "FINAL DECISION: APPROVED" ]; then
+            echo "❌ Final line is not an approval. Blocking."
             exit 1
-          fi
+          fi 
 
           echo "done bitch."
       #empty is not a approval for pushing or merging.
