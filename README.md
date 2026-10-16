@@ -1,4 +1,6 @@
 ## WARNING: 
+Experimental code - just testing stuff as i go forward -- reading this code would be a **waste** of your time :)
+
 70% of it is for self learning - contains "self comments" , explanation for how certain things are made and how things works - description for those sys call's.
 Wanted to keep the code and docs separate but at start i didn't know it would get kind of big for me -- too much effort to separate them now as no one else me is going to see this.
 
