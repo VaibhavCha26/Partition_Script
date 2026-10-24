@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           #config_path: "./gemini/gemini-commands.md"
           prompt: | 
             Follow the isntructions and rules in ./gemini-commands.md exactly.
@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN_PARTITION_SCRIPT }}
           GEMINI_API_KEY: ${{secrets.GEMINI_API_KEY2 }}
         with:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY2 }}
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY2 }}
           # instructions: "./gemini-commands.md"
 
           prompt: | 
