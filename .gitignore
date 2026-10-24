@@ -1,6 +1,39 @@
-# Ignore the compiled executable binary
-install_script
-
-# Ignore any standard C object files
+# Compiled Object files
 *.o
+*.obj
+
+# Dynamic & Static Libraries
+*.a
+*.lib
+
+# helper files needed to run program on os - windows and linux
+*.so
+*.dds
+*.dll
+
+# for macos - helper files
+*.dylib
+
+# Executables
+*.exe
+*.out
+#Executable for max .app 
+*.app 
+
+
+# Debug symbols & IDE artifacts
+*.pdb
+*.dSYM/
+
+# temporary linker files used during compilation.
+*.ilk
+*.exp
+
+
+# C/C++ common build directories -- compiler dumps the code here.
+build/
+bin/
+out/
+
+
 
